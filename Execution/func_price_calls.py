@@ -1,8 +1,4 @@
-from config_execution_api import ticker_1
-from config_execution_api import ticker_2
-from config_execution_api import session_public
-from config_execution_api import timeframe
-from config_execution_api import kline_limit
+from config_execution_api import ticker_1, ticker_2, session_public, timeframe, kline_limit
 from func_calcultions import extract_close_prices
 import datetime
 import time
@@ -12,25 +8,28 @@ import time
 def get_ticker_trade_liquidity(ticker):
 
     # Get trades history
-    trades = session_public.public_trading_records(
+    trades = session_public.get_orderbook(
+        category="linear",
         symbol=ticker,
-        limit=50
+        limit=25
     )
 
     # Get the list for calculating the average liquidity
     quantity_list = []
     if "result" in trades.keys():
-        for trade in trades["result"]:
-            quantity_list.append(trade["qty"])
+        for bids in trades["result"]["b"]:
+            quantity_list.append(float(bids[1]))
+        for asks in trades["result"]["a"]:
+            quantity_list.append(float(asks[1]))
 
     # Return output
     if len(quantity_list) > 0:
         avg_liq = sum(quantity_list) / len(quantity_list)
-        res_trades_price = float(trades["result"][0]["price"])
+        res_trades_price = float(trades["result"]["a"][0][0])
         return (avg_liq, res_trades_price)
     return (0, 0)
 
-
+get_ticker_trade_liquidity("BTCUSDT")
 # Get start times
 def get_timestamps():
     time_start_date = 0
@@ -53,20 +52,21 @@ def get_price_klines(ticker):
 
     # Get prices
     time_start_seconds, _, _ = get_timestamps()
-    prices = session_public.query_mark_price_kline(
+    prices = session_public.get_mark_price_kline(
+        category="linear",
         symbol=ticker,
         interval=timeframe,
+        start=time_start_seconds,
         limit=kline_limit,
-        from_time=time_start_seconds
     )
 
     # Manage API calls
     time.sleep(0.1)
 
     # Return prices output
-    if len(prices["result"]) != kline_limit:
+    if len(prices["result"]["list"]) != kline_limit:
         return []
-    return prices["result"]
+    return prices["result"]["list"]
 
 
 # Get latest klines

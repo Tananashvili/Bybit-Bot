@@ -1,5 +1,5 @@
-from config_ws_connect import subs_public
-from config_ws_connect import ws_public
+from config_execution_api import ticker_1, ticker_2
+from config_ws_connect import get_orderbook_info
 from func_calcultions import get_trade_details
 from func_price_calls import get_latest_klines
 from func_stats import calculate_metrics
@@ -8,10 +8,10 @@ from func_stats import calculate_metrics
 def get_latest_zscore():
 
     # Get latest asset orderbook prices and add dummy price for latest
-    orderbook_1 = ws_public.fetch(subs_public[0])
-    mid_price_1, _, _, = get_trade_details(orderbook_1)
-    orderbook_2 = ws_public.fetch(subs_public[1])
-    mid_price_2, _, _, = get_trade_details(orderbook_2)
+    orderbook_1 = get_orderbook_info(ticker_1)
+    mid_price_1, _, _, = get_trade_details(orderbook_1, "Long", 0)
+    orderbook_2 =get_orderbook_info(ticker_2)
+    mid_price_2, _, _, = get_trade_details(orderbook_2, "Long", 0)
 
     # Get latest price history
     series_1, series_2 = get_latest_klines()

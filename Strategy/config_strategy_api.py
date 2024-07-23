@@ -4,7 +4,7 @@
 """
 
 # API Imports
-from pybit.unified_trading import HTTP, WebSocket
+from pybit.unified_trading import HTTP
 
 
 

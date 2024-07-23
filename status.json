@@ -1,8 +1,8 @@
 {
-    "message": "Initial checks made...",
+    "message": "Managing new trades...",
     "checks": [
         false,
-        true,
+        false,
         false,
         false
     ]

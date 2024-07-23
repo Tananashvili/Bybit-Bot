@@ -3,16 +3,12 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # General Imports
-from config_execution_api import signal_positive_ticker
-from config_execution_api import signal_negative_ticker
-from func_position_calls import open_position_confirmation
-from func_position_calls import active_position_confirmation
+from config_execution_api import ticker_1, signal_positive_ticker, signal_negative_ticker
+from func_position_calls import open_position_confirmation, active_position_confirmation
 from func_trade_management import manage_new_trades
 from func_execution_calls import set_leverage
 from func_close_positions import close_all_positions
 from func_get_zscore import get_latest_zscore
-from config_ws_connect import ws_public
-from config_ws_connect import subs_public
 from func_save_status import save_status
 import time
 
@@ -42,11 +38,7 @@ if __name__ == "__main__":
     print("Seeking trades...")
     while True:
 
-        # Keep alive
-        pinged = ws_public.fetch(subs_public[0])
-
-        # Pause - protect API
-        time.sleep(3)
+        time.sleep(1)
 
         # Check if open trades already exist
         is_p_ticker_open = open_position_confirmation(signal_positive_ticker)

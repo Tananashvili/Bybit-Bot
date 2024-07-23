@@ -7,7 +7,6 @@
 from config_strategy_api import session, timeframe, kline_limit
 import datetime
 import time
-import requests
 
 # Get start times
 time_start_date = 0
@@ -19,13 +18,15 @@ time_start_seconds = int(time_start_date.timestamp())
 
 # Get historical prices (klines)
 def get_price_klines(symbol):
-
     # Get prices
 
-    url = f"https://api-testnet.bybit.com/v5/market/mark-price-kline?category=linear&symbol={symbol}&interval={timeframe}&start={time_start_seconds}&limit={kline_limit}"
-
-    response = requests.get(url)
-    prices = response.json()
+    prices = session.get_mark_price_kline(
+        category="linear",
+        symbol=symbol,
+        interval=timeframe,
+        start=time_start_seconds,
+        limit=kline_limit,
+    )
 
     # Manage API calls
     time.sleep(0.1)

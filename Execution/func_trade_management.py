@@ -1,9 +1,4 @@
-from config_execution_api import signal_positive_ticker
-from config_execution_api import signal_negative_ticker
-from config_execution_api import signal_trigger_thresh
-from config_execution_api import tradeable_capital_usdt
-from config_execution_api import limit_order_basis
-from config_execution_api import session_private
+from config_execution_api import signal_positive_ticker, signal_negative_ticker, signal_trigger_thresh, tradeable_capital_usdt, limit_order_basis, session_private
 from func_price_calls import get_ticker_trade_liquidity
 from func_get_zscore import get_latest_zscore
 from func_execution_calls import initialise_order_execution

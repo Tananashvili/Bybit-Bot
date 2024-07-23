@@ -3,10 +3,14 @@ from config_execution_api import session_private
 # Check for open positions
 def open_position_confirmation(ticker):
     try:
-        position = session_private.my_position(symbol=ticker)
-        if position["ret_msg"] == "OK":
-            for item in position["result"]:
-                if item["size"] > 0:
+        position = session_private.get_positions(
+            category="linear",
+            symbol=ticker
+            )
+
+        if position["retMsg"] == "OK":
+            for item in position["result"]["list"]:
+                if float(item["size"]) > 0 and item['liqPrice']:
                     return True
     except:
         return True
@@ -16,12 +20,13 @@ def open_position_confirmation(ticker):
 # Check for active positions
 def active_position_confirmation(ticker):
     try:
-        active_order = session_private.get_active_order(
+        active_order = session_private.get_open_orders(
+            category="linear",
             symbol=ticker,
-            order_status="Created,New,PartiallyFilled,Active"
         )
-        if active_order["ret_msg"] == "OK":
-            if active_order["result"]["data"] != None:
+
+        if active_order["retMsg"] == "OK":
+            if len(active_order["result"]["list"]) > 0:
                 return True
     except:
         return True
@@ -29,21 +34,23 @@ def active_position_confirmation(ticker):
 
 
 # Get open position price and quantity
-def get_open_positions(ticker, direction="Long"):
+def get_open_positions(ticker):
 
     # Get position
-    position = session_private.my_position(symbol=ticker)
-
-    # Select index to avoid looping through response
-    index = 0 if direction == "Long" else 1
+    active_order = session_private.get_positions(
+            category="linear",
+            symbol=ticker
+            )
 
     # Construct a response
-    if "ret_msg" in position.keys():
-        if position["ret_msg"] == "OK":
-            if "symbol" in position["result"][index].keys():
-                order_price = position["result"][index]["entry_price"]
-                order_quantity = position["result"][index]["size"]
-                return order_price, order_quantity
+    if "retMsg" in active_order.keys():
+        if active_order["retMsg"] == "OK":
+            if len(active_order["result"]["list"]) > 0:
+                for trade in active_order["result"]["list"]:
+                    if ticker in trade["symbol"]:
+                        order_price = trade["avgPrice"]
+                        order_quantity = trade["size"]
+                        return order_price, order_quantity
             return (0, 0)
     return (0, 0)
 
@@ -52,33 +59,37 @@ def get_open_positions(ticker, direction="Long"):
 def get_active_positions(ticker):
 
     # Get position
-    active_order = session_private.get_active_order(
+    position = session_private.get_open_orders(
+        category="linear",
         symbol=ticker,
-        order_status="Created,New,PartiallyFilled,Active"
     )
 
     # Construct a response
-    if "ret_msg" in active_order.keys():
-        if active_order["ret_msg"] == "OK":
-            if active_order["result"]["data"] != None:
-                order_price = active_order["result"]["data"][0]["price"]
-                order_quantity = active_order["result"]["data"][0]["quantity"]
-                return order_price, order_quantity
-            return (0, 0)
+    if "retMsg" in position.keys():
+        if position["retMsg"] == "OK":
+            for trade in position["result"]["list"]:
+                if "symbol" in trade.keys():
+                    order_price = trade["price"]
+                    order_quantity = trade["qty"]
+                    return order_price, order_quantity
+                return (0, 0)
     return (0, 0)
 
 
 # Query existing order
-def query_existing_order(ticker, order_id, direction):
+def query_existing_order(order_id):
 
     # Query order
-    order = session_private.query_active_order(symbol=ticker, order_id=order_id)
+    order = session_private.get_open_orders(
+    category="linear",
+    orderId=order_id
+    )
 
     # Construct response
-    if "ret_msg" in order.keys():
-        if order["ret_msg"] == "OK":
-            order_price = order["result"]["price"]
-            order_quantity = order["result"]["qty"]
-            order_status = order["result"]["order_status"]
+    if "retMsg" in order.keys():
+        if order["retMsg"] == "OK":
+            order_price = order["result"]["list"][0]["price"]
+            order_quantity = order["result"]["list"][0]["qty"]
+            order_status = order["result"]["list"][0]["orderStatus"]
             return order_price, order_quantity, order_status
     return (0, 0, 0)

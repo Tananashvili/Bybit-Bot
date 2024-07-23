@@ -20,17 +20,24 @@ def calculate_spread(series_1, series_2, hedge_ratio):
     return spread
 
 
-# Calculate metrics
+# Calculate co-integration
 def calculate_metrics(series_1, series_2):
     coint_flag = 0
-    coint_res = coint(series_1, series_2)
-    coint_t = coint_res[0]
-    p_value = coint_res[1]
-    critical_value = coint_res[2][1]
-    model = sm.OLS(series_1, series_2).fit()
-    hedge_ratio = model.params[0]
-    spread = calculate_spread(series_1, series_2, hedge_ratio)
-    zscore_list = calculate_zscore(spread)
-    if p_value < 0.5 and coint_t < critical_value:
-        coint_flag = 1
+    try:
+        coint_res = coint(series_1, series_2)
+        t_value = coint_res[0]
+        p_value = coint_res[1]
+        critical_value = coint_res[2][1]
+        model = sm.OLS(series_1, series_2).fit()
+        hedge_ratio = model.params[0]
+        spread = calculate_spread(series_1, series_2, hedge_ratio)
+        zscore_list = calculate_zscore(spread)
+        if p_value < 0.05 and t_value < critical_value:
+            coint_flag = 1
+
+    except ValueError:
+        print('Invalid input, x is constant')
+        coint_flag = 0
+        zscore_list = []
+
     return (coint_flag, zscore_list.tolist())

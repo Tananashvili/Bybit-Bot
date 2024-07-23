@@ -1,9 +1,4 @@
-from config_execution_api import stop_loss_fail_safe
-from config_execution_api import ticker_1
-from config_execution_api import rounding_ticker_1
-from config_execution_api import rounding_ticker_2
-from config_execution_api import quantity_rounding_ticker_1
-from config_execution_api import quantity_rounding_ticker_2
+from config_execution_api import stop_loss_fail_safe, ticker_1, rounding_ticker_1, rounding_ticker_2, quantity_rounding_ticker_1, quantity_rounding_ticker_2
 import math
 
 
@@ -11,14 +6,14 @@ import math
 def extract_close_prices(prices):
     close_prices = []
     for price_values in prices:
-        if math.isnan(price_values["close"]):
+        if math.isnan(float(price_values[-1])):
             return []
-        close_prices.append(price_values["close"])
+        close_prices.append(float(price_values[-1]))
     return close_prices
 
 
 # Get trade details and latest prices
-def get_trade_details(orderbook, direction="Long", capital=0):
+def get_trade_details(orderbook, direction, capital):
 
     # Set calculation and output variables
     price_rounding = 20
@@ -33,15 +28,11 @@ def get_trade_details(orderbook, direction="Long", capital=0):
     if orderbook:
 
         # Set price rounding
-        price_rounding = rounding_ticker_1 if orderbook[0]["symbol"] == ticker_1 else rounding_ticker_2
-        quantity_rounding = quantity_rounding_ticker_1 if orderbook[0]["symbol"] == ticker_1 else quantity_rounding_ticker_2
+        price_rounding = rounding_ticker_1 if orderbook['result']["s"] == ticker_1 else rounding_ticker_2
+        quantity_rounding = quantity_rounding_ticker_1 if orderbook['result']["s"] == ticker_1 else quantity_rounding_ticker_2
 
-        # Organise prices
-        for level in orderbook:
-            if level["side"] == "Buy":
-                bid_items_list.append(float(level["price"]))
-            else:
-                ask_items_list.append(float(level["price"]))
+        bid_items_list.append(orderbook['result']["b"])
+        ask_items_list.append(orderbook['result']["a"])
 
         # Calculate price, size, stop loss and average liquidity
         if len(ask_items_list) > 0 and len(bid_items_list) > 0:
@@ -52,8 +43,8 @@ def get_trade_details(orderbook, direction="Long", capital=0):
             bid_items_list.reverse()
 
             # Get nearest ask, nearest bid and orderbook spread
-            nearest_ask = ask_items_list[0]
-            nearest_bid = bid_items_list[0]
+            nearest_ask = float(ask_items_list[0][0][0])
+            nearest_bid = float(bid_items_list[0][0][0])
 
             # Calculate hard stop loss
             if direction == "Long":

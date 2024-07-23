@@ -1,7 +1,4 @@
-from func_cointegration import extract_close_prices
-from func_cointegration import calculate_cointegration
-from func_cointegration import calculate_spread
-from func_cointegration import calculate_zscore
+from func_cointegration import extract_close_prices, calculate_cointegration, calculate_spread, calculate_zscore
 import matplotlib.pyplot as plt
 import pandas as pd
 
