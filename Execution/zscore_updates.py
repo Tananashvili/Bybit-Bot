@@ -1,4 +1,4 @@
-import asyncio, os
+import asyncio, os, time
 from telegram import Bot
 from config_ws_connect import get_orderbook_info
 from func_calcultions import get_trade_details
@@ -30,6 +30,8 @@ def get_latest_zscore(ticker_1, ticker_2, starting_zscore, target_zscore, closin
 
     # Get latest price history
     series_1, series_2 = get_latest_klines(ticker_1, ticker_2)
+    sent = False
+    closed = False
 
     # Get z_score and confirm if hot
     if len(series_1) > 0 and len(series_2) > 0:
@@ -47,17 +49,28 @@ def get_latest_zscore(ticker_1, ticker_2, starting_zscore, target_zscore, closin
         if abs(zscore) < target_zscore:
             message = f'{ticker_1} - {ticker_2} Position Zscore is Low ({round(zscore, 2)}), Close Positions'
             asyncio.run(send_telegram_message(message))
+            sent = True
         elif abs(zscore) > stop_loss:
             message = f'{ticker_1} - {ticker_2} Position Zscore is Too High ({round(zscore, 2)})'
             asyncio.run(send_telegram_message(message))
+            sent = True
 
         if abs(zscore) <= abs(closing_zscore):
             close_all_positions(1)
+            closed = True
+    
+    return sent, closed
 
 
 symbols = ["OPUSDT", "STEEMUSDT"]
 starting_zscore = 2.54
-target_zscore = 1.5
-closing_zscore = 1
+target_zscore = 1.3
+closing_zscore = 0.8
 stop_loss = 3.2
-get_latest_zscore(symbols[0], symbols[1], starting_zscore, target_zscore, closing_zscore, stop_loss)
+
+while True:
+    msg_status, position_status = get_latest_zscore(symbols[0], symbols[1], starting_zscore, target_zscore, closing_zscore, stop_loss)
+    if position_status:
+        break
+
+    time.sleep(60)
