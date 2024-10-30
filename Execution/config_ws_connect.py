@@ -9,5 +9,3 @@ def get_orderbook_info(ticker):
     )
 
     return orderbook
-
-get_orderbook_info("BTCUSDT")

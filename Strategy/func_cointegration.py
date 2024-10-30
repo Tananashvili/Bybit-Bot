@@ -34,7 +34,7 @@ def calculate_cointegration(series_1, series_2):
         hedge_ratio = model.params[0]
         spread = calculate_spread(series_1, series_2, hedge_ratio)
         zero_crossings = len(np.where(np.diff(np.sign(spread)))[0])
-        if p_value < 0.05 and t_value < critical_value:
+        if p_value < 0.01 and t_value < critical_value:
             coint_flag = 1
     except ValueError:
         print('Invalid input, x is constant')
@@ -47,7 +47,7 @@ def calculate_cointegration(series_1, series_2):
 def extract_close_prices(prices):
     close_prices = []
     for price_values in prices:
-        close_price = float(price_values[-1])
+        close_price = float(price_values)
         if math.isnan(close_price):
             return []
         close_prices.append(close_price)
@@ -55,7 +55,7 @@ def extract_close_prices(prices):
 
 
 # Calculate cointegrated pairs
-def get_cointegrated_pairs(prices):
+def get_cointegrated_pairs(prices, bad_pairs):
 
     # Loop through coins and check for co-integration
     coint_pair_list = []
@@ -78,6 +78,8 @@ def get_cointegrated_pairs(prices):
 
                 # Check for cointegration and add cointegrated pair
                 coint_flag, p_value, t_value, c_value, hedge_ratio, zero_crossings = calculate_cointegration(series_1, series_2)
+                spread = calculate_spread(series_1, series_2, hedge_ratio)
+                zscore = calculate_zscore(spread)
                 if coint_flag == 1:
                     included_list.append(unique)
                     coint_pair_list.append({
@@ -87,11 +89,15 @@ def get_cointegrated_pairs(prices):
                         "t_value": t_value,
                         "c_value": c_value,
                         "hedge_ratio": hedge_ratio,
-                        "zero_crossings": zero_crossings
+                        "zero_crossings": zero_crossings,
+                        "z_score": zscore[-1],
+                        "abs": abs(zscore[-1])
                     })
 
     # Output results
     df_coint = pd.DataFrame(coint_pair_list)
+    df_coint = df_coint[~df_coint['sym_1'].isin(bad_pairs) & ~df_coint['sym_2'].isin(bad_pairs)]
     df_coint = df_coint.sort_values("zero_crossings", ascending=False)
-    df_coint.to_csv("2_cointegrated_pairs.csv")
+    df_coint.to_excel("2_cointegrated_pairs.xlsx", index=False)
+
     return df_coint

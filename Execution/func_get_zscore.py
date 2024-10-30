@@ -20,10 +20,13 @@ def get_latest_zscore():
     if len(series_1) > 0 and len(series_2) > 0:
 
         # Replace last kline price with latest orderbook mid price
-        series_1 = series_1[:-1]
-        series_2 = series_2[:-1]
-        series_1.append(mid_price_1)
-        series_2.append(mid_price_2)
+
+        series_1[0] = mid_price_1
+        series_2[0] = mid_price_2
+        # series_1 = series_1[:-1]
+        # series_2 = series_2[:-1]
+        # series_1.append(mid_price_1)
+        # series_2.append(mid_price_2)
 
         # Get latest zscore
         _, zscore_list = calculate_metrics(series_1, series_2)

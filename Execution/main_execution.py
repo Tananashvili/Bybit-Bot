@@ -65,6 +65,7 @@ if __name__ == "__main__":
 
             # Get and save the latest z-score
             zscore, signal_sign_positive = get_latest_zscore()
+            print(zscore)
 
             # Close positions
             if signal_side == "positive" and zscore < 0:

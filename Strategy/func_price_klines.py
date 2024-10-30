@@ -24,7 +24,7 @@ def get_price_klines(symbol):
         category="linear",
         symbol=symbol,
         interval=timeframe,
-        start=time_start_seconds,
+        # start=time_start_seconds,
         limit=kline_limit,
     )
 

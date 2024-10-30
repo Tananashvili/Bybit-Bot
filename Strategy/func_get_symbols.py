@@ -1,12 +1,11 @@
 from config_strategy_api import session
-import requests
 
 # Get symbols that are tradeable
 def get_tradeable_symbols():
-    url = "https://api-testnet.bybit.com/v5/market/instruments-info?category=linear"
-    response = requests.get(url)
-    symbols = response.json()
 
+    symbols = session.get_instruments_info(
+        category="linear",
+    )
     # Get available symbols
     sym_list = []
     if "retMsg" in symbols.keys():
