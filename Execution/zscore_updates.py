@@ -4,7 +4,7 @@ from config_ws_connect import get_orderbook_info
 from func_calcultions import get_trade_details
 from func_price_calls import get_latest_klines
 from func_stats import calculate_metrics
-from helping_functions import plot_trends
+from func_close_positions import close_all_positions
 from dotenv import load_dotenv
 
 
@@ -17,7 +17,7 @@ async def send_telegram_message(message):
 
 
 # Get latest z-score
-def get_latest_zscore(ticker_1, ticker_2, starting_zscore, target_zscore, stop_loss):
+def get_latest_zscore(ticker_1, ticker_2, starting_zscore, target_zscore, closing_zscore, stop_loss):
 
     direction_1 = "Short" if starting_zscore > 0 else "Long"
     direction_2 = "Short" if direction_1 == "Long" else "Long"
@@ -44,8 +44,6 @@ def get_latest_zscore(ticker_1, ticker_2, starting_zscore, target_zscore, stop_l
         _, zscore_list = calculate_metrics(series_1, series_2)
         zscore = zscore_list[-1]
 
-        print(zscore)
-
         if abs(zscore) < target_zscore:
             message = f'{ticker_1} - {ticker_2} Position Zscore is Low ({round(zscore, 2)}), Close Positions'
             asyncio.run(send_telegram_message(message))
@@ -53,13 +51,13 @@ def get_latest_zscore(ticker_1, ticker_2, starting_zscore, target_zscore, stop_l
             message = f'{ticker_1} - {ticker_2} Position Zscore is Too High ({round(zscore, 2)})'
             asyncio.run(send_telegram_message(message))
 
-        plot = input('Plot Trends? ')
-        if plot == 'yes' or plot == 'y':
-            plot_trends(symbols[0], symbols[1], series_1, series_2)
+        if abs(zscore) <= abs(closing_zscore):
+            close_all_positions(1)
 
 
 symbols = ["OPUSDT", "STEEMUSDT"]
 starting_zscore = 2.54
 target_zscore = 1.5
+closing_zscore = 1
 stop_loss = 3.2
-get_latest_zscore(symbols[0], symbols[1], starting_zscore, target_zscore, stop_loss)
+get_latest_zscore(symbols[0], symbols[1], starting_zscore, target_zscore, closing_zscore, stop_loss)
