@@ -56,7 +56,7 @@ def get_latest_zscore(ticker_1, ticker_2, starting_zscore, target_zscore, closin
             sent = True
 
         if abs(zscore) <= abs(closing_zscore):
-            close_all_positions(1)
+            close_all_positions(ticker_1, ticker_2, mid_price_1, mid_price_2)
             closed = True
     
     return sent, closed

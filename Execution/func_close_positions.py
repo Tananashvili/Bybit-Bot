@@ -45,18 +45,43 @@ def place_market_close_order(ticker, side, size):
     return
 
 
+def place_limit_close_order(ticker, side, size, mid_price):
+
+    # Close position
+    try:
+        session_private.place_order(
+            category="linear",
+            symbol=ticker,
+            side=side,
+            orderType="Limit",
+            qty=size,
+            price=mid_price,
+            isLeverage=0,
+            orderFilter="tpslOrder"
+        )
+        print(f"{ticker} Close Order Created!")
+    except pybit.exceptions.InvalidRequestError as e:
+        print(e)
+        print(f"Couldn't Close Order: {ticker}")
+    # Return
+    return
+
+
 # Close all positions for both tickers
-def close_all_positions(kill_switch):
+def close_all_positions(ticker_1, ticker_2, mid_price_1, mid_price_2):
 
     # Get position information
-    side_1, size_1 = get_position_info(signal_positive_ticker)
-    side_2, size_2 = get_position_info(signal_negative_ticker)
+    side_1, size_1 = get_position_info(ticker_1)
+    side_2, size_2 = get_position_info(ticker_2)
 
     if float(size_1) > 0:
-        place_market_close_order(signal_positive_ticker, side_2, size_1)  # use side 2
+        # place_market_close_order(ticker_1, side_2, size_1)  # use side 2
+        place_limit_close_order(ticker_1, side_2, size_1, mid_price_1)
 
     if float(size_2) > 0:
-        place_market_close_order(signal_negative_ticker, side_1, size_2)  # use side 1
+        # place_market_close_order(ticker_2, side_1, size_2)  # use side 1
+        place_limit_close_order(ticker_2, side_1, size_2, mid_price_2)
+
 
     # Cancel all active orders
     session_private.cancel_all_orders(category="linear", settleCoin="USDT")
