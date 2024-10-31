@@ -17,7 +17,7 @@ api_secret_testnet = os.getenv('api_secret_testnet')
 
 # CONFIG
 mode = "mainnet"
-timeframe = 'D'
+timeframe = 60
 kline_limit = 200
 z_score_window = 21
 
