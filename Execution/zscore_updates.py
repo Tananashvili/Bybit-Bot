@@ -53,13 +53,13 @@ def get_latest_zscore(ticker_1, ticker_2, starting_zscore, target_zscore, stop_l
             message = f'{ticker_1} - {ticker_2} Position Zscore is Too High ({round(zscore, 2)})'
             asyncio.run(send_telegram_message(message))
 
-        plot = input('Plot Trends? ')
-        if plot == 'yes' or plot == 'y':
-            plot_trends(symbols[0], symbols[1], series_1, series_2)
+        # plot = input('Plot Trends? ')
+        # if plot == 'yes' or plot == 'y':
+        #     plot_trends(symbols[0], symbols[1], series_1, series_2)
 
 
-symbols = ["OPUSDT", "STEEMUSDT"]
-starting_zscore = 2.54
+symbols = ["EIGENUSDT", "BNXUSDT"]
+starting_zscore = 2.63
 target_zscore = 1.5
-stop_loss = 3.2
+stop_loss = 3.5
 get_latest_zscore(symbols[0], symbols[1], starting_zscore, target_zscore, stop_loss)
