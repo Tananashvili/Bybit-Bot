@@ -1,4 +1,4 @@
-from config_execution_api import stop_loss_fail_safe, ticker_1, rounding_ticker_1, rounding_ticker_2, quantity_rounding_ticker_1, quantity_rounding_ticker_2
+from config_execution_api import stop_loss_fail_safe, rounding_ticker_1, rounding_ticker_2, quantity_rounding_ticker_1, quantity_rounding_ticker_2
 import math
 
 
@@ -13,7 +13,7 @@ def extract_close_prices(prices):
 
 
 # Get trade details and latest prices
-def get_trade_details(orderbook, direction, capital):
+def get_trade_details(ticker, orderbook, direction, capital):
 
     # Set calculation and output variables
     price_rounding = 20
@@ -28,8 +28,8 @@ def get_trade_details(orderbook, direction, capital):
     if orderbook:
 
         # Set price rounding
-        price_rounding = rounding_ticker_1 if orderbook['result']["s"] == ticker_1 else rounding_ticker_2
-        quantity_rounding = quantity_rounding_ticker_1 if orderbook['result']["s"] == ticker_1 else quantity_rounding_ticker_2
+        price_rounding = rounding_ticker_1 if orderbook['result']["s"] == ticker else rounding_ticker_2
+        quantity_rounding = quantity_rounding_ticker_1 if orderbook['result']["s"] == ticker else quantity_rounding_ticker_2
 
         bid_items_list.append(orderbook['result']["b"])
         ask_items_list.append(orderbook['result']["a"])

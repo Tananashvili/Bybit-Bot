@@ -33,7 +33,7 @@ tradeable_capital_usdt = 100 * int(leverage) # total tradeable capital to be spl
 stop_loss_fail_safe = 0.8 # stop loss at market order in case of drastic event
 signal_trigger_thresh = 2.5 # z-score threshold which determines trade (must be above zero)
 
-timeframe = 'D' # make sure matches your strategy
+timeframe = 60 # make sure matches your strategy
 kline_limit = 200 # make sure matches your strategy
 z_score_window = 21 # make sure matches your strategy
 
