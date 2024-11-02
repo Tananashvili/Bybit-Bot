@@ -1,5 +1,8 @@
 from config_strategy_api import session_public
 import math
+from dotenv import load_dotenv
+import os
+from telegram import Bot
 
 
 def get_orderbook_info(ticker):
@@ -47,3 +50,11 @@ def extract_close_prices(prices):
             return []
         close_prices.append(close_price)
     return close_prices
+
+
+async def send_telegram_message(message):
+    load_dotenv()
+    bot_token = os.getenv('bot_token')
+    chat_id = os.getenv('chat_id')
+    bot = Bot(token=bot_token)
+    await bot.send_message(chat_id=chat_id, text=message)

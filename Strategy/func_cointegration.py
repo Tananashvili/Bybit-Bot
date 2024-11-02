@@ -80,7 +80,7 @@ def get_cointegrated_pairs(prices, bad_pairs):
                 coint_flag, p_value, t_value, c_value, hedge_ratio, zero_crossings = calculate_cointegration(series_1, series_2)
                 spread = calculate_spread(series_1, series_2, hedge_ratio)
                 zscore = calculate_zscore(spread)
-                if coint_flag == 1 and abs(zscore[-1]) > 2 and zero_crossings > 30:
+                if coint_flag == 1 and abs(zscore[-1]) > 2 and zero_crossings > 25:
                     included_list.append(unique)
                     coint_pair_list.append({
                         "sym_1": sym_1,
