@@ -56,8 +56,6 @@ def place_limit_close_order(ticker, side, size, mid_price):
             orderType="Limit",
             qty=size,
             price=mid_price,
-            isLeverage=0,
-            orderFilter="tpslOrder"
         )
         print(f"{ticker} Close Order Created!")
     except pybit.exceptions.InvalidRequestError as e:

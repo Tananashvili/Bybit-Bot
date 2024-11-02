@@ -47,7 +47,7 @@ def get_trade_details(ticker, orderbook, direction, capital):
             nearest_bid = float(bid_items_list[0][0][0])
 
             # Calculate hard stop loss
-            if direction == "Long":
+            if direction == "Short":
                 mid_price = nearest_bid # placing at Bid has high probability of not being cancelled, but may not fill
                 stop_loss = round(mid_price * (1 - stop_loss_fail_safe), price_rounding)
             else:
