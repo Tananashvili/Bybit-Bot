@@ -11,7 +11,7 @@ import pandas as pd
 import json
 import asyncio
 
-BAD_PAIRS = ['OGNUSDT']
+BAD_PAIRS = []
 
 """STRATEGY CODE"""
 if __name__ == "__main__":
