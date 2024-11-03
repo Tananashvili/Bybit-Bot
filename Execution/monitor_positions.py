@@ -4,7 +4,7 @@ from config_ws_connect import get_orderbook_info
 from func_calcultions import get_trade_details
 from func_price_calls import get_latest_klines
 from func_stats import calculate_metrics
-from func_close_positions import close_all_positions
+from func_close_positions import close_all_positions, get_position_info, cancel_all_orders
 from dotenv import load_dotenv
 
 
@@ -17,7 +17,7 @@ async def send_telegram_message(message):
 
 
 # Get latest z-score
-def get_latest_zscore(ticker_1, ticker_2, starting_zscore, target_zscore, closing_zscore, stop_loss):
+def monitor_zscore(ticker_1, ticker_2, starting_zscore, closing_zscore, stop_loss, count):
 
     direction_1 = "Short" if starting_zscore > 0 else "Long"
     direction_2 = "Short" if direction_1 == "Long" else "Long"
@@ -46,31 +46,44 @@ def get_latest_zscore(ticker_1, ticker_2, starting_zscore, target_zscore, closin
         _, zscore_list = calculate_metrics(series_1, series_2)
         zscore = zscore_list[-1]
 
-        if abs(zscore) < target_zscore:
-            message = f'{ticker_1} - {ticker_2} Position Zscore is Low ({round(zscore, 2)}), Close Positions'
+        if abs(zscore) > stop_loss:
+            message = f'{ticker_1} - {ticker_2} Position Zscore is Too High: {round(zscore, 2)}'
             asyncio.run(send_telegram_message(message))
             sent = True
-        elif abs(zscore) > stop_loss:
-            message = f'{ticker_1} - {ticker_2} Position Zscore is Too High ({round(zscore, 2)})'
+        elif count % 10 == 0:
+            message = f'{ticker_1} - {ticker_2} Zscore: {round(zscore, 2)}'
             asyncio.run(send_telegram_message(message))
-            sent = True
 
         if abs(zscore) <= abs(closing_zscore):
             close_all_positions(ticker_1, ticker_2, mid_price_1, mid_price_2)
-            closed = True
-    
+
+            while True:
+                time.sleep(30)
+                side_1, size_1 = get_position_info(ticker_1)
+                side_2, size_2 = get_position_info(ticker_2)
+
+                if float(size_1) > 0 or float(size_2) > 0:
+                    cancel_all_orders()
+                    close_all_positions(ticker_1, ticker_2, mid_price_1, mid_price_2)
+                else:
+                    message = f'{ticker_1} - {ticker_2} Position Closed at Zscore {round(zscore, 2)}'
+                    asyncio.run(send_telegram_message(message))
+                    closed = True
+                    break
+
     return sent, closed
 
 
-symbols = ["OPUSDT", "STEEMUSDT"]
-starting_zscore = 2.54
-target_zscore = 1.3
-closing_zscore = 0.8
-stop_loss = 3.2
+symbols = ["FORTHUSDT", "XNOUSDT"]
+starting_zscore = 2.15
+closing_zscore = 0.6
+stop_loss = 3.25
+count = 1
 
 while True:
-    msg_status, position_status = get_latest_zscore(symbols[0], symbols[1], starting_zscore, target_zscore, closing_zscore, stop_loss)
-    if position_status:
+    msg_status, closed = monitor_zscore(symbols[0], symbols[1], starting_zscore, closing_zscore, stop_loss, count)
+    if closed:
         break
-
+    
+    count += 1
     time.sleep(60)

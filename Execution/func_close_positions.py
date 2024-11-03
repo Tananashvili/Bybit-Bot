@@ -80,10 +80,10 @@ def close_all_positions(ticker_1, ticker_2, mid_price_1, mid_price_2):
         # place_market_close_order(ticker_2, side_1, size_2)  # use side 1
         place_limit_close_order(ticker_2, side_1, size_2, mid_price_2)
 
-
-    # Cancel all active orders
-    session_private.cancel_all_orders(category="linear", settleCoin="USDT")
-
     # Output results
     kill_switch = 0
     return kill_switch
+
+
+def cancel_all_orders():
+    session_private.cancel_all_orders(category="linear", settleCoin="USDT")
