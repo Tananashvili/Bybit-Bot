@@ -80,7 +80,7 @@ def plot_trends(sym_1, sym_2, prices_1, prices_2):
     fig.add_trace(go.Scatter(x=list(range(len(zscore))), y=zscore, mode='lines', name='Z-Score'), row=3, col=1)
 
     # Add a horizontal line for Z-Score threshold (e.g., Z-score of 2)
-    fig.add_hline(y=2, line_dash="dash", row=3, col=1, annotation_text="Z-score Threshold", annotation_position="bottom right")
+    fig.add_hline(y=0, line_dash="dash", row=3, col=1, annotation_text="Z-score Threshold", annotation_position="bottom right")
     
     # Update layout
     fig.update_layout(
