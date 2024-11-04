@@ -40,7 +40,7 @@ def calculate_cointegration(series_1, series_2):
         print('Invalid input, x is constant')
         coint_flag = p_value = t_value = critical_value = hedge_ratio = zero_crossings = 0
 
-    return (coint_flag, round(p_value, 2), round(t_value, 2), round(critical_value, 2), round(hedge_ratio, 2), zero_crossings)
+    return (coint_flag, round(p_value, 2), round(t_value, 2), round(critical_value, 2), hedge_ratio, zero_crossings)
 
 
 # Put close prices into a list
@@ -97,7 +97,5 @@ def get_cointegrated_pairs(prices, bad_pairs):
     # Output results
     df_coint = pd.DataFrame(coint_pair_list)
     df_coint = df_coint[~df_coint['sym_1'].isin(bad_pairs) & ~df_coint['sym_2'].isin(bad_pairs)]
-    df_coint = df_coint.sort_values("zero_crossings", ascending=False)
-    df_coint.to_excel("2_cointegrated_pairs.xlsx", index=False)
 
     return df_coint

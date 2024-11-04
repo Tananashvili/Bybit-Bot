@@ -61,9 +61,9 @@ async def send_telegram_message(message):
     await bot.send_message(chat_id=chat_id, text=message)
 
 
-def filter_data():
+def filter_data(coint_pairs):
 
-    df = pd.read_excel('2_cointegrated_pairs.xlsx')
+    df = coint_pairs
 
     df = df[df['abs'] >= 2]
     df = df[df['zero_crossings'] >= 25]
@@ -75,4 +75,4 @@ def filter_data():
     df = df[(df['sym_1'] != 'USDCUSDT') & (df['sym_2'] != 'USDCUSDT')]
     df = df.sort_values(by=['zero_crossings', 'abs'], ascending=[False, False])
 
-    df.to_excel('filtered_sorted_data.xlsx', index=False)
+    df.to_excel('2_cointegrated_pairs.xlsx', index=False)

@@ -33,7 +33,7 @@ if __name__ == "__main__":
             coint_pairs = get_cointegrated_pairs(price_data, BAD_PAIRS)
 
     # STEP 4 - Filter Database
-    filter_data()
+    filter_data(coint_pairs)
     asyncio.run(send_telegram_message('Done'))
 
     # # STEP 5 - Plot trends and save for backtesting
