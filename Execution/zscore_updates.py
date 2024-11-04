@@ -13,9 +13,9 @@ def get_latest_zscore(ticker_1, ticker_2, starting_zscore, target_zscore, stop_l
 
     # Get latest asset orderbook prices and add dummy price for latest
     orderbook_1 = get_orderbook_info(ticker_1)
-    mid_price_1, _, _, = get_trade_details(orderbook_1, direction_1, 0, 10)
+    mid_price_1, _, _, = get_trade_details(ticker_1, orderbook_1, direction_1, 0)
     orderbook_2 = get_orderbook_info(ticker_2)
-    mid_price_2, _, _, = get_trade_details(orderbook_2, direction_2, 0, 10)
+    mid_price_2, _, _, = get_trade_details(ticker_1, orderbook_2, direction_2, 0)
 
     # Get latest price history
     series_1, series_2 = get_latest_klines(ticker_1, ticker_2)

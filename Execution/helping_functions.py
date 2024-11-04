@@ -43,7 +43,7 @@ def calculate_cointegration(series_1, series_2):
         print('Invalid input, x is constant')
         coint_flag = p_value = t_value = critical_value = hedge_ratio = zero_crossings = 0
 
-    return (coint_flag, round(p_value, 2), round(t_value, 2), round(critical_value, 2), round(hedge_ratio, 2), zero_crossings)
+    return (coint_flag, round(p_value, 2), round(t_value, 2), round(critical_value, 2), hedge_ratio, zero_crossings)
 
 
 def plot_trends(sym_1, sym_2, prices_1, prices_2):
