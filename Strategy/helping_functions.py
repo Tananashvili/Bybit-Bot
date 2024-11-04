@@ -72,6 +72,7 @@ def filter_data():
     coins_to_remove = coin_counts[coin_counts > 5].index
     
     df = df[~df['sym_1'].isin(coins_to_remove) & ~df['sym_2'].isin(coins_to_remove)]
+    df = df[(df['sym_1'] != 'USDCUSDT') & (df['sym_2'] != 'USDCUSDT')]
     df = df.sort_values(by=['zero_crossings', 'abs'], ascending=[False, False])
 
     df.to_excel('filtered_sorted_data.xlsx', index=False)
