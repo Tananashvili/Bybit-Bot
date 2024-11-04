@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import os
 from telegram import Bot
 import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
 
 
 def get_orderbook_info(ticker):
@@ -76,3 +77,23 @@ def filter_data(coint_pairs):
     df = df.sort_values(by=['zero_crossings', 'abs'], ascending=[False, False])
 
     df.to_excel('2_cointegrated_pairs.xlsx', index=False)
+
+
+def pick_best_pair():  
+
+    df = pd.read_excel('2_cointegrated_pairs.xlsx')
+
+    columns = ['abs', 'zero_crossings', 'hedge_ratio']
+    weights = {'abs': 0.4, 'zero_crossings': 0.4, 'hedge_ratio': 0.2}
+
+    scaler = MinMaxScaler()
+    df_normalized = pd.DataFrame(scaler.fit_transform(df[columns]), columns=columns)
+
+    df['score'] = (df_normalized['abs'] * weights['abs'] +
+                df_normalized['zero_crossings'] * weights['zero_crossings'] +
+                df_normalized['hedge_ratio'] * weights['hedge_ratio'])
+
+    best_row = df.loc[df['score'].idxmax()]
+
+    print("The most important row based on the criteria is:")
+    print(best_row)

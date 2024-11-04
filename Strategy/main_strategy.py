@@ -6,7 +6,7 @@ from func_get_symbols import get_tradeable_symbols
 from func_prices_json import store_price_history
 from func_cointegration import get_cointegrated_pairs
 from func_plot_trends import plot_trends
-from helping_functions import send_telegram_message, filter_data
+from helping_functions import send_telegram_message, filter_data, pick_best_pair
 import pandas as pd
 import json
 import asyncio
@@ -34,7 +34,8 @@ if __name__ == "__main__":
 
     # STEP 4 - Filter Database
     filter_data(coint_pairs)
-    asyncio.run(send_telegram_message('Done'))
+    best_pair = pick_best_pair()
+    asyncio.run(send_telegram_message(best_pair))
 
     # # STEP 5 - Plot trends and save for backtesting
     # print("Plotting trends...")
