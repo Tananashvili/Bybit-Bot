@@ -17,7 +17,7 @@ async def send_telegram_message(message):
 
 
 # Get latest z-score
-def monitor_zscore(ticker_1, ticker_2, starting_zscore, closing_zscore, stop_loss, count):
+def monitor_zscore(ticker_1, ticker_2, starting_zscore, closing_zscore, stop_loss, liq_price_1, liq_price_2, count):
 
     direction_1 = "Short" if starting_zscore > 0 else "Long"
     direction_2 = "Short" if direction_1 == "Long" else "Long"
@@ -28,6 +28,21 @@ def monitor_zscore(ticker_1, ticker_2, starting_zscore, closing_zscore, stop_los
     orderbook_2 = get_orderbook_info(ticker_2)
     mid_price_2, _, _, = get_trade_details(ticker_2, orderbook_2, direction_2, 0)
 
+    # Compare price to liquidation price
+    if direction_1 == 'Long':
+        stop_price_1 = float(liq_price_1) * 1.02
+        stop_price_2 = float(liq_price_2) * 0.995
+        if float(mid_price_1) < stop_price_1 or float(mid_price_2) > stop_price_2:
+            message = f'Liquidation Danger!'
+            asyncio.run(send_telegram_message(message))
+
+    else:
+        stop_price_1 = float(liq_price_1) * 0.995
+        stop_price_2 = float(liq_price_2) * 1.02
+        if float(mid_price_1) > stop_price_1 or float(mid_price_2) < stop_price_2:
+            message = f'Liquidation Danger!'
+            asyncio.run(send_telegram_message(message))
+    print(mid_price_1, liq_price_1, mid_price_2, liq_price_2)
     # Get latest price history
     series_1, series_2 = get_latest_klines(ticker_1, ticker_2)
     sent = False
@@ -59,8 +74,8 @@ def monitor_zscore(ticker_1, ticker_2, starting_zscore, closing_zscore, stop_los
 
             while True:
                 time.sleep(30)
-                side_1, size_1 = get_position_info(ticker_1)
-                side_2, size_2 = get_position_info(ticker_2)
+                side_1, size_1, _ = get_position_info(ticker_1)
+                side_2, size_2, _ = get_position_info(ticker_2)
 
                 if float(size_1) > 0 or float(size_2) > 0:
                     cancel_all_orders()
@@ -74,14 +89,17 @@ def monitor_zscore(ticker_1, ticker_2, starting_zscore, closing_zscore, stop_los
     return sent, closed
 
 
-symbols = ["FORTHUSDT", "XNOUSDT"]
-starting_zscore = 2.15
-closing_zscore = 0.6
-stop_loss = 3.25
-count = 1
+symbols = ["OPUSDT", "SNTUSDT"]
+starting_zscore = -2.68
+closing_zscore = 1
+stop_loss = 3.5
+count = 10
+
+_, _, liq_price_1 = get_position_info(symbols[0])
+_, _, liq_price_2 = get_position_info(symbols[1])
 
 while True:
-    msg_status, closed = monitor_zscore(symbols[0], symbols[1], starting_zscore, closing_zscore, stop_loss, count)
+    msg_status, closed = monitor_zscore(symbols[0], symbols[1], starting_zscore, closing_zscore, stop_loss, liq_price_1, liq_price_2, count)
     if closed:
         break
     

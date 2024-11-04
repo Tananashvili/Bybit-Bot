@@ -12,6 +12,7 @@ def get_position_info(ticker):
     # Declare output variables
     side = 0
     size = ""
+    liq = ""
 
     # Extract position info
     position = session_private.get_positions(category="linear", symbol=ticker)
@@ -19,9 +20,10 @@ def get_position_info(ticker):
         if position["retMsg"] == "OK":
             size = position["result"]["list"][0]["size"]
             side = position["result"]["list"][0]["side"]
+            liq = ["result"]["list"][0]["liqPrice"]
 
     # Return output
-    return side, size
+    return side, size, liq
 
 
 #  Place market close order
@@ -69,8 +71,8 @@ def place_limit_close_order(ticker, side, size, mid_price):
 def close_all_positions(ticker_1, ticker_2, mid_price_1, mid_price_2):
 
     # Get position information
-    side_1, size_1 = get_position_info(ticker_1)
-    side_2, size_2 = get_position_info(ticker_2)
+    side_1, size_1, _ = get_position_info(ticker_1)
+    side_2, size_2, _ = get_position_info(ticker_2)
 
     if float(size_1) > 0:
         # place_market_close_order(ticker_1, side_2, size_1)  # use side 2
