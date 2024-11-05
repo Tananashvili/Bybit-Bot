@@ -65,7 +65,7 @@ def monitor_zscore(ticker_1, ticker_2, starting_zscore, closing_zscore, stop_los
             message = f'{ticker_1} - {ticker_2} Position Zscore is Too High: {round(zscore, 2)}'
             asyncio.run(send_telegram_message(message))
             sent = True
-        elif count % 10 == 0:
+        elif count % 15 == 0:
             message = f'{ticker_1} - {ticker_2} Zscore: {round(zscore, 2)}'
             asyncio.run(send_telegram_message(message))
 
@@ -93,7 +93,7 @@ symbols = ["OPUSDT", "SNTUSDT"]
 starting_zscore = -2.68
 closing_zscore = 1
 stop_loss = 3.5
-count = 10
+count = 15
 
 _, _, liq_price_1 = get_position_info(symbols[0])
 _, _, liq_price_2 = get_position_info(symbols[1])
