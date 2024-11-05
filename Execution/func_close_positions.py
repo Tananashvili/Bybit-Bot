@@ -20,7 +20,7 @@ def get_position_info(ticker):
         if position["retMsg"] == "OK":
             size = position["result"]["list"][0]["size"]
             side = position["result"]["list"][0]["side"]
-            liq = ["result"]["list"][0]["liqPrice"]
+            liq = position["result"]["list"][0]["liqPrice"]
 
     # Return output
     return side, size, liq
