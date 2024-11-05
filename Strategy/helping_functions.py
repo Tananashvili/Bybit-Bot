@@ -95,5 +95,4 @@ def pick_best_pair():
 
     best_row = df.loc[df['score'].idxmax()]
 
-    print("The most important row based on the criteria is:")
-    print(best_row)
+    return best_row
