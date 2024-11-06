@@ -83,15 +83,14 @@ def pick_best_pair():
 
     df = pd.read_excel('2_cointegrated_pairs.xlsx')
 
-    columns = ['abs', 'zero_crossings', 'hedge_ratio']
-    weights = {'abs': 0.4, 'zero_crossings': 0.4, 'hedge_ratio': 0.2}
+    columns = ['abs', 'zero_crossings']
+    weights = {'abs': 0.65, 'zero_crossings': 0.35}
 
     scaler = MinMaxScaler()
     df_normalized = pd.DataFrame(scaler.fit_transform(df[columns]), columns=columns)
 
     df['score'] = (df_normalized['abs'] * weights['abs'] +
-                df_normalized['zero_crossings'] * weights['zero_crossings'] +
-                df_normalized['hedge_ratio'] * weights['hedge_ratio'])
+                df_normalized['zero_crossings'] * weights['zero_crossings'])
 
     df_sorted = df.sort_values(by='score', ascending=False)
     df_sorted.to_excel('2_cointegrated_pairs.xlsx', index=False)

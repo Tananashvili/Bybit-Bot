@@ -16,7 +16,7 @@ api_key_testnet = os.getenv('api_key_testnet')
 api_secret_testnet = os.getenv('api_secret_testnet')
 
 # CONFIG VARIABLES
-mode = "mainnet"
+mode = "test"
 ticker_1 = "ZKJUSDT"
 ticker_2 = "ETHBTCUSDT"
 leverage = "20"
@@ -27,7 +27,7 @@ rounding_ticker_2 = 6
 quantity_rounding_ticker_1 = 0
 quantity_rounding_ticker_2 = 1
 
-limit_order_basis = False # will ensure positions (except for Close) will be placed on limit basis
+limit_order_basis = True # will ensure positions (except for Close) will be placed on limit basis
 
 tradeable_capital_usdt = 100 * int(leverage) # total tradeable capital to be split between both pairs
 stop_loss_fail_safe = 0.8 # stop loss at market order in case of drastic event
