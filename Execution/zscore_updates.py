@@ -37,8 +37,8 @@ def get_latest_zscore(ticker_1, ticker_2, starting_zscore, target_zscore, stop_l
         plot_trends(symbols[0], symbols[1], series_1, series_2)
 
 
-symbols = ["OPUSDT", "SNTUSDT"]
-starting_zscore = 2.15
+symbols = ["FIDAUSDT", "VANRYUSDT"]
+starting_zscore = -3.3
 target_zscore = 1.35
-stop_loss = 3.25
+stop_loss = 3.8
 get_latest_zscore(symbols[0], symbols[1], starting_zscore, target_zscore, stop_loss)

@@ -28,21 +28,6 @@ def monitor_zscore(ticker_1, ticker_2, starting_zscore, closing_zscore, stop_los
     orderbook_2 = get_orderbook_info(ticker_2)
     mid_price_2, _, _, = get_trade_details(ticker_2, orderbook_2, direction_2, 0)
 
-    # Compare price to liquidation price
-    if direction_1 == 'Long':
-        stop_price_1 = float(liq_price_1) * 1.02
-        stop_price_2 = float(liq_price_2) * 0.995
-        if float(mid_price_1) < stop_price_1 or float(mid_price_2) > stop_price_2:
-            message = f'Liquidation Danger!'
-            asyncio.run(send_telegram_message(message))
-
-    else:
-        stop_price_1 = float(liq_price_1) * 0.995
-        stop_price_2 = float(liq_price_2) * 1.02
-        if float(mid_price_1) > stop_price_1 or float(mid_price_2) < stop_price_2:
-            message = f'Liquidation Danger!'
-            asyncio.run(send_telegram_message(message))
-    print(mid_price_1, liq_price_1, mid_price_2, liq_price_2)
     # Get latest price history
     series_1, series_2 = get_latest_klines(ticker_1, ticker_2)
     sent = False
@@ -89,10 +74,10 @@ def monitor_zscore(ticker_1, ticker_2, starting_zscore, closing_zscore, stop_los
     return sent, closed
 
 
-symbols = ["OPUSDT", "SNTUSDT"]
-starting_zscore = -2.68
-closing_zscore = 1
-stop_loss = 3.5
+symbols = ["FIDAUSDT", "VANRYUSDT"]
+starting_zscore = -3.3
+closing_zscore = 1.35
+stop_loss = 3.8
 count = 15
 
 _, _, liq_price_1 = get_position_info(symbols[0])
