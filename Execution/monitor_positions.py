@@ -6,6 +6,7 @@ from func_price_calls import get_latest_klines
 from func_stats import calculate_metrics
 from func_close_positions import close_all_positions, get_position_info, cancel_all_orders
 from dotenv import load_dotenv
+from datetime import datetime
 
 
 async def send_telegram_message(message):
@@ -16,8 +17,23 @@ async def send_telegram_message(message):
     await bot.send_message(chat_id=chat_id, text=message)
 
 
-# Get latest z-score
-def monitor_zscore(ticker_1, ticker_2, starting_zscore, closing_zscore, stop_loss, liq_price_1, liq_price_2, count):
+def adjust_klines_when_date_changes(series_1, series_2):
+    avg1 = sum(series_1) / len(series_1)
+    avg2 = sum(series_2) / len(series_2)
+    series_1.pop(1)
+    series_1[-1] = avg1
+    series_2.pop(1)
+    series_2[-1] = avg2
+
+    return series_1, series_2
+
+
+def monitor_zscore():
+
+    global ticker_1, ticker_2, starting_zscore, closing_zscore, stop_loss, starting_date, count
+
+    current_time = datetime.utcnow()
+    current_date = current_time.date()
 
     direction_1 = "Short" if starting_zscore > 0 else "Long"
     direction_2 = "Short" if direction_1 == "Long" else "Long"
@@ -39,6 +55,10 @@ def monitor_zscore(ticker_1, ticker_2, starting_zscore, closing_zscore, stop_los
         # Replace last kline price with latest orderbook mid price
         series_1[0] = mid_price_1
         series_2[0] = mid_price_2
+        
+        if current_date != starting_date:
+            series_1, series_2 = adjust_klines_when_date_changes(series_1, series_2)
+
         series_1.reverse()
         series_2.reverse()
 
@@ -74,17 +94,19 @@ def monitor_zscore(ticker_1, ticker_2, starting_zscore, closing_zscore, stop_los
     return sent, closed
 
 
-symbols = ["FIDAUSDT", "VANRYUSDT"]
-starting_zscore = -3.3
-closing_zscore = 1.35
-stop_loss = 3.8
+ticker_1 = "QIUSDT"
+ticker_2 = "REQUSDT"
+starting_zscore = 2.5
+closing_zscore = 1.7
+stop_loss = 3.5
 count = 15
+starting_date = datetime.utcnow().date()
 
-_, _, liq_price_1 = get_position_info(symbols[0])
-_, _, liq_price_2 = get_position_info(symbols[1])
+# _, _, liq_price_1 = get_position_info(ticker_1)
+# _, _, liq_price_2 = get_position_info(ticker_2)
 
 while True:
-    msg_status, closed = monitor_zscore(symbols[0], symbols[1], starting_zscore, closing_zscore, stop_loss, liq_price_1, liq_price_2, count)
+    msg_status, closed = monitor_zscore()
     if closed:
         break
     

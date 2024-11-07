@@ -16,7 +16,7 @@ api_key_testnet = os.getenv('api_key_testnet')
 api_secret_testnet = os.getenv('api_secret_testnet')
 
 # CONFIG VARIABLES
-mode = "test"
+mode = "mainnet"
 ticker_1 = "ZKJUSDT"
 ticker_2 = "ETHBTCUSDT"
 leverage = "20"
