@@ -61,7 +61,6 @@ def place_order(ticker, price, quantity, direction, stop_loss):
     # Return order
     return order
 
-place_order('BTCUSDT', '79,814.60', )
 
 # Initialise execution
 def initialise_order_execution(ticker, direction, capital):
@@ -74,3 +73,16 @@ def initialise_order_execution(ticker, direction, capital):
                 if "orderId" in order["result"]:
                     return order["result"]["orderId"]
     return 0
+
+
+def set_tpsl(ticker, sl_price):
+    try:
+        session_private.set_trading_stop(
+            category='linear',
+            symbol=ticker,
+            tpslMode='Full',
+            stopLoss=sl_price,
+            positionIdx=0
+        )
+    except InvalidRequestError:
+        pass

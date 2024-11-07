@@ -5,8 +5,12 @@ from func_calcultions import get_trade_details
 from func_price_calls import get_latest_klines
 from func_stats import calculate_metrics
 from func_close_positions import close_all_positions, get_position_info, cancel_all_orders
+from func_execution_calls import set_tpsl
 from dotenv import load_dotenv
 from datetime import datetime
+import warnings
+
+warnings.filterwarnings("ignore", category=DeprecationWarning, message=".*utcnow.*")
 
 
 async def send_telegram_message(message):
@@ -102,8 +106,11 @@ stop_loss = 3.5
 count = 15
 starting_date = datetime.utcnow().date()
 
-# _, _, liq_price_1 = get_position_info(ticker_1)
-# _, _, liq_price_2 = get_position_info(ticker_2)
+_, _, liq_price_1 = get_position_info(ticker_1)
+_, _, liq_price_2 = get_position_info(ticker_2)
+
+set_tpsl(ticker_1, liq_price_1)
+set_tpsl(ticker_2, liq_price_2)
 
 while True:
     msg_status, closed = monitor_zscore()
