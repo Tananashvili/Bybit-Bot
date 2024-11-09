@@ -6,7 +6,6 @@ from statsmodels.tsa.stattools import coint
 import statsmodels.api as sm
 import pandas as pd
 import numpy as np
-import math
 
 
 # Calculate Z-Score
@@ -95,3 +94,12 @@ def plot_trends(sym_1, sym_2, prices_1, prices_2):
     fig.show()
 
 
+def adjust_klines_when_date_changes(series_1, series_2):
+    avg1 = sum(series_1) / len(series_1)
+    avg2 = sum(series_2) / len(series_2)
+    series_1.pop(1)
+    series_1[-1] = avg1
+    series_2.pop(1)
+    series_2[-1] = avg2
+
+    return series_1, series_2

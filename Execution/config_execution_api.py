@@ -1,9 +1,3 @@
-"""
-    API Documentation
-    https://bybit-exchange.github.io/docs/v5/intro
-"""
-
-# API Imports
 from pybit.unified_trading import HTTP
 from dotenv import load_dotenv
 import os
@@ -15,27 +9,25 @@ api_secret_mainnet = os.getenv('api_secret_mainnet')
 api_key_testnet = os.getenv('api_key_testnet')
 api_secret_testnet = os.getenv('api_secret_testnet')
 
+# POSITION VARIABLES
+ticker_1 = "ADAUSDT"
+ticker_2 = "COMPUSDT"
+starting_zscore = 3.3
+closing_zscore = 2.3
+stop_loss = 3.8
+capital = 305
+
 # CONFIG VARIABLES
-mode = "test"
-ticker_1 = "ZKJUSDT"
-ticker_2 = "ETHBTCUSDT"
-leverage = "20"
-signal_positive_ticker = ticker_2
-signal_negative_ticker = ticker_1
-rounding_ticker_1 = 4
-rounding_ticker_2 = 6
-quantity_rounding_ticker_1 = 0
-quantity_rounding_ticker_2 = 1
+mode = "main"
+leverage = "8"
+limit_order_basis = True 
 
-limit_order_basis = True # will ensure positions (except for Close) will be placed on limit basis
+direction_1 = "Short" if starting_zscore > 0 else "Long"
+direction_2 = "Long" if direction_1 == "Short" else "Short"
 
-tradeable_capital_usdt = 100 * int(leverage) # total tradeable capital to be split between both pairs
-stop_loss_fail_safe = 0.8 # stop loss at market order in case of drastic event
-signal_trigger_thresh = 2.5 # z-score threshold which determines trade (must be above zero)
-
-timeframe = 'D' # make sure matches your strategy
-kline_limit = 200 # make sure matches your strategy
-z_score_window = 21 # make sure matches your strategy
+timeframe = 'D' 
+kline_limit = 200 
+z_score_window = 21 
 
 # SELECTED API
 api_key = api_key_testnet if mode == "test" else api_key_mainnet

@@ -1,4 +1,3 @@
-from config_execution_api import stop_loss_fail_safe, rounding_ticker_1, rounding_ticker_2, quantity_rounding_ticker_1, quantity_rounding_ticker_2
 import math
 
 
@@ -13,23 +12,14 @@ def extract_close_prices(prices):
 
 
 # Get trade details and latest prices
-def get_trade_details(ticker, orderbook, direction, capital):
+def get_trade_details(orderbook, direction):
 
-    # Set calculation and output variables
-    price_rounding = 20
-    quantity_rounding = 20
     mid_price = 0
-    quantity = 0
-    stop_loss = 0
     bid_items_list = []
     ask_items_list = []
 
     # Get prices, stop loss and quantity
     if orderbook:
-
-        # Set price rounding
-        price_rounding = rounding_ticker_1 if orderbook['result']["s"] == ticker else rounding_ticker_2
-        quantity_rounding = quantity_rounding_ticker_1 if orderbook['result']["s"] == ticker else quantity_rounding_ticker_2
 
         bid_items_list.append(orderbook['result']["b"])
         ask_items_list.append(orderbook['result']["a"])
@@ -49,13 +39,8 @@ def get_trade_details(ticker, orderbook, direction, capital):
             # Calculate hard stop loss
             if direction == "Short":
                 mid_price = nearest_bid # placing at Bid has high probability of not being cancelled, but may not fill
-                stop_loss = round(mid_price * (1 - stop_loss_fail_safe), price_rounding)
             else:
                 mid_price = nearest_ask  # placing at Ask has high probability of not being cancelled, but may not fill
-                stop_loss = round(mid_price * (1 + stop_loss_fail_safe), price_rounding)
-
-            # Calculate quantity
-            quantity = round(capital / mid_price, quantity_rounding)
 
     # Output results
-    return (mid_price, stop_loss, quantity)
+    return mid_price

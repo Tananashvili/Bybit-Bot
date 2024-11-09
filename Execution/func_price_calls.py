@@ -1,4 +1,4 @@
-from config_execution_api import ticker_1, ticker_2, session_public, timeframe, kline_limit
+from config_execution_api import session_public, timeframe, kline_limit
 from func_calcultions import extract_close_prices
 import datetime
 import time
@@ -70,11 +70,11 @@ def get_price_klines(ticker):
 
 
 # Get latest klines
-def get_latest_klines(t_1=ticker_1, t_2=ticker_2):
+def get_latest_klines(ticker_1, ticker_2):
     series_1 = []
     series_2 = []
-    prices_1 = get_price_klines(t_1)
-    prices_2 = get_price_klines(t_2)
+    prices_1 = get_price_klines(ticker_1)
+    prices_2 = get_price_klines(ticker_2)
 
     if len(prices_1) > 0:
         series_1 = extract_close_prices(prices_1)

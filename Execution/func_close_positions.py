@@ -1,8 +1,4 @@
-from config_execution_api import (
-    signal_positive_ticker,
-    signal_negative_ticker,
-    session_private,
-)
+from config_execution_api import session_private
 import pybit.exceptions
 
 
@@ -85,6 +81,10 @@ def close_all_positions(ticker_1, ticker_2, mid_price_1, mid_price_2):
     # Output results
     kill_switch = 0
     return kill_switch
+
+
+def cancel_order(ticker, order_id):
+    session_private.cancel_order(category="linear", symbol=ticker, orderId=order_id)
 
 
 def cancel_all_orders():

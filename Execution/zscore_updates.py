@@ -1,4 +1,5 @@
 from config_ws_connect import get_orderbook_info
+from config_execution_api import ticker_1, ticker_2, direction_1, direction_2
 from func_calcultions import get_trade_details
 from func_price_calls import get_latest_klines
 from func_stats import calculate_metrics
@@ -6,24 +7,12 @@ from helping_functions import plot_trends
 
 
 # Get latest z-score
-def get_latest_zscore(ticker_1, ticker_2, starting_zscore, target_zscore, stop_loss):
-
-    direction_1 = "Short" if starting_zscore > 0 else "Long"
-    direction_2 = "Short" if direction_1 == "Long" else "Long"
-
+def get_latest_zscore():
     # Get latest asset orderbook prices and add dummy price for latest
     orderbook_1 = get_orderbook_info(ticker_1)
-    (
-        mid_price_1,
-        _,
-        _,
-    ) = get_trade_details(ticker_1, orderbook_1, direction_1, 0)
+    mid_price_1 = get_trade_details(orderbook_1, direction_1)
     orderbook_2 = get_orderbook_info(ticker_2)
-    (
-        mid_price_2,
-        _,
-        _,
-    ) = get_trade_details(ticker_1, orderbook_2, direction_2, 0)
+    mid_price_2 = get_trade_details(orderbook_2, direction_2)
 
     # Get latest price history
     series_1, series_2 = get_latest_klines(ticker_1, ticker_2)
@@ -42,11 +31,7 @@ def get_latest_zscore(ticker_1, ticker_2, starting_zscore, target_zscore, stop_l
         zscore = zscore_list[-1]
 
         print(zscore)
-        # plot_trends(symbols[0], symbols[1], series_1, series_2)
+        plot_trends(ticker_1, ticker_2, series_1, series_2)
 
 
-symbols = ["ADAUSDT", "COMPUSDT"]
-starting_zscore = 2.5
-target_zscore = 1.3
-stop_loss = 3.5
-get_latest_zscore(symbols[0], symbols[1], starting_zscore, target_zscore, stop_loss)
+get_latest_zscore()
