@@ -6,6 +6,7 @@ from statsmodels.tsa.stattools import coint
 import statsmodels.api as sm
 import pandas as pd
 import numpy as np
+import math
 
 
 # Calculate Z-Score
@@ -103,3 +104,11 @@ def adjust_klines_when_date_changes(series_1, series_2):
     series_2[-1] = avg2
 
     return series_1, series_2
+
+
+def round_quantity(quantity, step_size):
+    # Divide by the step size and floor it, then multiply back
+    rounded = math.floor(quantity / step_size) * step_size
+    # Explicitly round to the precision of the step size to avoid floating-point issues
+    precision = len(str(step_size).split('.')[-1])  # Determine how many decimal places to round to
+    return round(rounded, precision)

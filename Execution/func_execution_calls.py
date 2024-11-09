@@ -1,5 +1,6 @@
 from config_execution_api import session_private, session_public, limit_order_basis, leverage, capital
 from config_ws_connect import get_orderbook_info
+from helping_functions import round_quantity
 from func_calcultions import get_trade_details
 from pybit.exceptions import InvalidRequestError
 
@@ -88,7 +89,7 @@ def initialise_order_execution(ticker, direction):
     orderbook = get_orderbook_info(ticker)
     mid_price= get_trade_details(orderbook, direction_reverse)
     quantity = (capital * float(leverage)) / (2 * float(mid_price))
-    quantity = round(quantity / float(qty_step)) * float(qty_step)
+    quantity = round_quantity(quantity, float(qty_step))
 
     set_leverage(ticker)
     order = place_order(ticker, mid_price, quantity, direction)

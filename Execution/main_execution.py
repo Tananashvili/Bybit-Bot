@@ -98,7 +98,7 @@ if order_1 and order_2:
         order_2_status = check_order_status(ticker_2)
 
         if order_1_status == 'Filled' and order_2_status == 'Filled':
-            send_telegram_message('Both Orders Filled!')
+            asyncio.run(send_telegram_message('Both Orders Filled!'))
             break
 
         if order_1_status != 'Filled':
@@ -126,4 +126,4 @@ if order_1 and order_2:
         time.sleep(60)
 
 else:
-    send_telegram_message("Couldn't Place Order!")
+    asyncio.run(send_telegram_message("Couldn't Place Order!"))
