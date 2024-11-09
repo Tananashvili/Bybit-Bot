@@ -93,7 +93,7 @@ order_2 = initialise_order_execution(ticker_2, direction_2)
 if order_1 and order_2:
     while True:
 
-        time.sleep(20)
+        time.sleep(30)
         order_1_status = check_order_status(ticker_1)
         order_2_status = check_order_status(ticker_2)
 

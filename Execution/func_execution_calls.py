@@ -87,10 +87,10 @@ def initialise_order_execution(ticker, direction):
 
     orderbook = get_orderbook_info(ticker)
     mid_price= get_trade_details(orderbook, direction_reverse)
-    quantity = (capital * leverage) / (2 * mid_price)
+    quantity = (capital * float(leverage)) / (2 * float(mid_price))
     quantity = round(quantity / float(qty_step)) * float(qty_step)
 
-    set_leverage(ticker, str(leverage))
+    set_leverage(ticker)
     order = place_order(ticker, mid_price, quantity, direction)
 
     if "result" in order.keys():

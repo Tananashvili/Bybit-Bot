@@ -10,12 +10,12 @@ api_key_testnet = os.getenv('api_key_testnet')
 api_secret_testnet = os.getenv('api_secret_testnet')
 
 # POSITION VARIABLES
-ticker_1 = "ADAUSDT"
-ticker_2 = "COMPUSDT"
-starting_zscore = 3.3
-closing_zscore = 2.3
-stop_loss = 3.8
-capital = 305
+ticker_1 = "CTSIUSDT"
+ticker_2 = "SPELLUSDT"
+starting_zscore = -3.45
+closing_zscore = 3.15
+stop_loss = 3.9
+capital = 300
 
 # CONFIG VARIABLES
 mode = "main"
