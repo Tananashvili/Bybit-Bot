@@ -98,11 +98,11 @@ def monitor_zscore():
     return sent, closed
 
 
-ticker_1 = "QIUSDT"
-ticker_2 = "REQUSDT"
-starting_zscore = 2.5
-closing_zscore = 1.7
-stop_loss = 3.5
+ticker_1 = "ADAUSDT"
+ticker_2 = "COMPUSDT"
+starting_zscore = 3.3
+closing_zscore = 2.3
+stop_loss = 3.8
 count = 15
 starting_date = datetime.utcnow().date()
 
