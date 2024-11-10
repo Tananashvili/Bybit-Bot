@@ -94,8 +94,8 @@ if order_1 and order_2:
     while True:
 
         time.sleep(60)
-        order_1_status = check_order_status(ticker_1)
-        order_2_status = check_order_status(ticker_2)
+        order_1_status, left_qty_1 = check_order_status(ticker_1)
+        order_2_status, left_qty_2 = check_order_status(ticker_2)
 
         if order_1_status == 'Filled' and order_2_status == 'Filled':
             asyncio.run(send_telegram_message('Both Orders Filled!'))
@@ -103,11 +103,11 @@ if order_1 and order_2:
 
         if order_1_status != 'Filled':
             cancel_order(ticker_1, order_1)
-            order_1 = initialise_order_execution(ticker_1, direction_1)
+            order_1 = initialise_order_execution(ticker_1, direction_1, left_qty_1)
         
         if order_2_status != 'Filled':
             cancel_order(ticker_2, order_2)
-            order_2 = initialise_order_execution(ticker_2, direction_2)
+            order_2 = initialise_order_execution(ticker_2, direction_2, left_qty_2)
     
     _, _, liq_price_1 = get_position_info(ticker_1)
     _, _, liq_price_2 = get_position_info(ticker_2)

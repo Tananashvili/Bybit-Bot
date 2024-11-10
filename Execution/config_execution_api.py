@@ -10,16 +10,16 @@ api_key_testnet = os.getenv('api_key_testnet')
 api_secret_testnet = os.getenv('api_secret_testnet')
 
 # POSITION VARIABLES
-ticker_1 = "CFXUSDT"
-ticker_2 = "STXUSDT"
-starting_zscore = 2.34
-closing_zscore = 2.05
-stop_loss = 3.9
-capital = 330
+ticker_1 = "XVSUSDT"
+ticker_2 = "POWRUSDT"
+starting_zscore = 2.2
+closing_zscore = 0
+stop_loss = 3
+capital = 395
 
 # CONFIG VARIABLES
 mode = "main"
-leverage = "8"
+leverage = "10"
 limit_order_basis = True 
 
 direction_1 = "Short" if starting_zscore > 0 else "Long"

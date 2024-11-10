@@ -70,14 +70,18 @@ def check_order_status(ticker):
 
     try:
         order_status = order['result']['list'][0]['orderStatus']
-        return order_status
+        if order_status == 'PartiallyFilled':
+            left_qty = order['result']['list'][0]['leavesQty']
+        else:
+            left_qty = False
+        return order_status, left_qty
     
     except IndexError:
-        return 'Filled'
+        return 'Filled', False
 
 
 # Initialise execution
-def initialise_order_execution(ticker, direction):
+def initialise_order_execution(ticker, direction, qty=False):
     direction_reverse = 'Short' if direction == 'Long' else 'Long'
 
     ticker_info = session_public.get_instruments_info(
@@ -88,8 +92,12 @@ def initialise_order_execution(ticker, direction):
 
     orderbook = get_orderbook_info(ticker)
     mid_price= get_trade_details(orderbook, direction_reverse)
-    quantity = (capital * float(leverage)) / (2 * float(mid_price))
-    quantity = round_quantity(quantity, float(qty_step))
+
+    if qty:
+        quantity = qty
+    else:
+        quantity = (capital * float(leverage)) / (2 * float(mid_price))
+        quantity = round_quantity(quantity, float(qty_step))
 
     set_leverage(ticker)
     order = place_order(ticker, mid_price, quantity, direction)
