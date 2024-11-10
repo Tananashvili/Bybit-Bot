@@ -1,10 +1,15 @@
 from config_ws_connect import get_orderbook_info
-from config_execution_api import ticker_1, ticker_2, direction_1, direction_2
+from config_execution_api import get_position_variables
 from func_calcultions import get_trade_details
 from func_price_calls import get_latest_klines
 from func_stats import calculate_metrics
 from helping_functions import plot_trends
 
+config = get_position_variables()
+ticker_1 = config['ticker_1']
+ticker_2 = config['ticker_2']
+direction_1 = config['direction_1']
+direction_2 = config['direction_2']
 
 # Get latest z-score
 def get_latest_zscore():

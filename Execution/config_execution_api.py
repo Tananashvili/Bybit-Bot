@@ -1,6 +1,6 @@
 from pybit.unified_trading import HTTP
 from dotenv import load_dotenv
-import os
+import os, json
 
 load_dotenv()
 
@@ -10,20 +10,32 @@ api_key_testnet = os.getenv('api_key_testnet')
 api_secret_testnet = os.getenv('api_secret_testnet')
 
 # POSITION VARIABLES
-ticker_1 = "XVSUSDT"
-ticker_2 = "POWRUSDT"
-starting_zscore = 2.2
-closing_zscore = 0
-stop_loss = 3
-capital = 395
+def get_position_variables():
+
+    with open('config.json', 'r') as f:
+        config = json.load(f)
+
+    ticker_1 = config['ticker_1']
+    ticker_2 = config['ticker_2']
+
+    starting_zscore = config['starting_zscore']
+    closing_zscore = config['closing_zscore']
+    stop_loss = config['stop_loss']
+
+    capital = config['capital']
+    leverage = config['leverage']
+    open_positions = config['open_positions']
+
+    direction_1 = "Short" if starting_zscore > 0 else "Long"
+    direction_2 = "Long" if direction_1 == "Short" else "Short"
+
+    return {'ticker_1': ticker_1, 'ticker_2': ticker_2, 'starting_zscore': starting_zscore, 'closing_zscore': closing_zscore,
+            'stop_loss': stop_loss, 'capital': capital, 'leverage': leverage, 'open_positions': open_positions,
+            'direction_1': direction_1, 'direction_2': direction_2}
 
 # CONFIG VARIABLES
 mode = "main"
-leverage = "10"
 limit_order_basis = True 
-
-direction_1 = "Short" if starting_zscore > 0 else "Long"
-direction_2 = "Long" if direction_1 == "Short" else "Short"
 
 timeframe = 'D' 
 kline_limit = 200 

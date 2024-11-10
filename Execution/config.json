@@ -1,0 +1,10 @@
+{
+    "ticker_1": "XVSUSDT",
+    "ticker_2": "POWRUSDT",
+    "starting_zscore": 2.2,
+    "closing_zscore": 0,
+    "stop_loss": 3,
+    "capital": 395,
+    "leverage": "10",
+    "open_positions": false
+}

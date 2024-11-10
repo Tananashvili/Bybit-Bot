@@ -1,7 +1,7 @@
 import asyncio, os, time
 from telegram import Bot
 from config_ws_connect import get_orderbook_info
-from config_execution_api import ticker_1, ticker_2, direction_1, direction_2, closing_zscore, stop_loss
+from config_execution_api import get_position_variables
 from func_calcultions import get_trade_details
 from func_price_calls import get_latest_klines
 from func_stats import calculate_metrics
@@ -24,8 +24,6 @@ async def send_telegram_message(message):
 
 
 def monitor_zscore():
-
-    global starting_date, count
 
     current_time = datetime.utcnow()
     current_date = current_time.date()
@@ -85,45 +83,70 @@ def monitor_zscore():
 
     return sent, closed
 
+# GET POSITION CONFIGURATIONS
+config = get_position_variables()
+
+ticker_1 = config['ticker_1']
+ticker_2 = config['ticker_2']
+
+starting_zscore = config['starting_zscore']
+closing_zscore = config['closing_zscore']
+stop_loss = config['stop_loss']
+
+capital = config['capital']
+leverage = config['leverage']
+open_positions = config['open_positions']
+
+direction_1 = "Short" if starting_zscore > 0 else "Long"
+direction_2 = "Long" if direction_1 == "Short" else "Short"
 
 # PLACE ORDER
-order_1 = initialise_order_execution(ticker_1, direction_1)
-order_2 = initialise_order_execution(ticker_2, direction_2)
+if open_positions:
+    order_1 = initialise_order_execution(ticker_1, direction_1)
+    order_2 = initialise_order_execution(ticker_2, direction_2)
 
-if order_1 and order_2:
-    while True:
+    if order_1 and order_2:
+        while True:
 
-        time.sleep(60)
-        order_1_status, left_qty_1 = check_order_status(ticker_1)
-        order_2_status, left_qty_2 = check_order_status(ticker_2)
+            time.sleep(60)
+            order_1_status, left_qty_1 = check_order_status(ticker_1)
+            order_2_status, left_qty_2 = check_order_status(ticker_2)
 
-        if order_1_status == 'Filled' and order_2_status == 'Filled':
-            asyncio.run(send_telegram_message('Both Orders Filled!'))
-            break
+            if order_1_status == 'Filled' and order_2_status == 'Filled':
+                asyncio.run(send_telegram_message('Both Orders Filled!'))
+                break
 
-        if order_1_status != 'Filled':
-            cancel_order(ticker_1, order_1)
-            order_1 = initialise_order_execution(ticker_1, direction_1, left_qty_1)
-        
-        if order_2_status != 'Filled':
-            cancel_order(ticker_2, order_2)
-            order_2 = initialise_order_execution(ticker_2, direction_2, left_qty_2)
+            if order_1_status != 'Filled':
+                cancel_order(ticker_1, order_1)
+                order_1 = initialise_order_execution(ticker_1, direction_1, left_qty_1)
+            
+            if order_2_status != 'Filled':
+                cancel_order(ticker_2, order_2)
+                order_2 = initialise_order_execution(ticker_2, direction_2, left_qty_2)
+
+    else:
+        asyncio.run(send_telegram_message("Couldn't Place Order!"))
+
+_, _, liq_price_1 = get_position_info(ticker_1)
+_, _, liq_price_2 = get_position_info(ticker_2)
+
+set_tpsl(ticker_1, liq_price_1)
+set_tpsl(ticker_2, liq_price_2)
+
+count = 15
+starting_date = datetime.utcnow().date()
+
+while True:
+    if count % 10 == 0:
+        config = get_position_variables()
+
+        starting_zscore = config['starting_zscore']
+        closing_zscore = config['closing_zscore']
+        stop_loss = config['stop_loss']
+
+    msg_status, closed = monitor_zscore()
+    if closed:
+        break
     
-    _, _, liq_price_1 = get_position_info(ticker_1)
-    _, _, liq_price_2 = get_position_info(ticker_2)
-
-    set_tpsl(ticker_1, liq_price_1)
-    set_tpsl(ticker_2, liq_price_2)
-
-    count = 15
-    starting_date = datetime.utcnow().date()
-    while True:
-        msg_status, closed = monitor_zscore()
-        if closed:
-            break
-        
-        count += 1
-        time.sleep(60)
-
-else:
-    asyncio.run(send_telegram_message("Couldn't Place Order!"))
+    count += 1
+    time.sleep(60)
