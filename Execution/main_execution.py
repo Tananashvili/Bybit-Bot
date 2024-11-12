@@ -38,10 +38,15 @@ def monitor_zscore():
     series_1, series_2 = get_latest_klines(ticker_1, ticker_2)
     sent = False
     closed = False
+    tpsl_filled = False
 
     # Check if position is liquidated
-    if liq_price_1 <= mid_price_1 or liq_price_2 <= mid_price_2:
-        tpsl_filled = True
+    if direction_1 == 'Short':
+        if float(liq_price_1) <= float(mid_price_1) or float(liq_price_2) >= float(mid_price_2):
+            tpsl_filled = True
+    else:
+        if float(liq_price_1) >= float(mid_price_1) or float(liq_price_2) <= float(mid_price_2):
+            tpsl_filled = True
 
     # Get z_score and confirm if hot
     if len(series_1) > 0 and len(series_2) > 0:
@@ -148,7 +153,6 @@ set_tpsl(ticker_2, liq_price_2)
 
 count = 15
 starting_date = datetime.utcnow().date()
-tpsl_filled = False
 
 while True:
     if count % 10 == 0:
