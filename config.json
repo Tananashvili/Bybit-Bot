@@ -1,0 +1,10 @@
+{
+    "ticker_1": "10000000AIDOGEUSDT",
+    "ticker_2": "WIFUSDT",
+    "starting_zscore": -2.6,
+    "closing_zscore": 2.25,
+    "stop_loss": 3.5,
+    "capital": 560,
+    "leverage": "10",
+    "open_positions": true
+}

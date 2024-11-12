@@ -39,6 +39,10 @@ def monitor_zscore():
     sent = False
     closed = False
 
+    # Check if position is liquidated
+    if liq_price_1 <= mid_price_1 or liq_price_2 <= mid_price_2:
+        tpsl_filled = True
+
     # Get z_score and confirm if hot
     if len(series_1) > 0 and len(series_2) > 0:
 
@@ -64,7 +68,11 @@ def monitor_zscore():
             message = f'{ticker_1} - {ticker_2} Zscore: {round(zscore, 2)}'
             asyncio.run(send_telegram_message(message))
 
-        if abs(zscore) <= abs(closing_zscore):
+        if abs(zscore) <= abs(closing_zscore) or tpsl_filled:
+            if tpsl_filled:
+                asyncio.run(send_telegram_message('One Position Was Liquidated, Second One Will Liquidate in 5 Minutes'))
+                time.sleep(300)
+                
             close_all_positions(ticker_1, ticker_2, mid_price_1, mid_price_2)
 
             while True:
@@ -75,8 +83,13 @@ def monitor_zscore():
                 if float(size_1) > 0 or float(size_2) > 0:
                     cancel_all_orders()
                     close_all_positions(ticker_1, ticker_2, mid_price_1, mid_price_2)
+
                 else:
-                    message = f'CONGRATS!!! {ticker_1} - {ticker_2} Position Closed at Zscore {round(zscore, 2)}'
+                    if tpsl_filled:
+                        message = f'Liquidated {ticker_1} - {ticker_2} Position at Zscore {round(zscore, 2)}'
+                    else:
+                        message = f'CONGRATS!!! {ticker_1} - {ticker_2} Position Closed at Zscore {round(zscore, 2)}'
+                    
                     asyncio.run(send_telegram_message(message))
                     closed = True
                     break
@@ -135,6 +148,7 @@ set_tpsl(ticker_2, liq_price_2)
 
 count = 15
 starting_date = datetime.utcnow().date()
+tpsl_filled = False
 
 while True:
     if count % 10 == 0:
