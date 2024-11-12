@@ -40,13 +40,12 @@ def monitor_zscore():
     closed = False
     tpsl_filled = False
 
-    # Check if position is liquidated
-    if direction_1 == 'Short':
-        if float(liq_price_1) <= float(mid_price_1) or float(liq_price_2) >= float(mid_price_2):
-            tpsl_filled = True
-    else:
-        if float(liq_price_1) >= float(mid_price_1) or float(liq_price_2) <= float(mid_price_2):
-            tpsl_filled = True
+    # Check if position is still active
+    side_1, size_1, _ = get_position_info(ticker_1)
+    side_2, size_2, _ = get_position_info(ticker_2)
+
+    if float(size_1) == 0 or float(size_2) == 0:
+        tpsl_filled = True
 
     # Get z_score and confirm if hot
     if len(series_1) > 0 and len(series_2) > 0:
@@ -73,11 +72,7 @@ def monitor_zscore():
             message = f'{ticker_1} - {ticker_2} Zscore: {round(zscore, 2)}'
             asyncio.run(send_telegram_message(message))
 
-        if abs(zscore) <= abs(closing_zscore) or tpsl_filled:
-            if tpsl_filled:
-                asyncio.run(send_telegram_message('One Position Was Liquidated, Second One Will Liquidate in 5 Minutes'))
-                time.sleep(300)
-                
+        if abs(zscore) <= abs(closing_zscore) or tpsl_filled:              
             close_all_positions(ticker_1, ticker_2, mid_price_1, mid_price_2)
 
             while True:
