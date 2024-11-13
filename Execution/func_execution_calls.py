@@ -123,3 +123,12 @@ def set_tpsl(ticker, sl_price):
         )
     except InvalidRequestError:
         pass
+
+
+def get_wallet_balance():
+    balance = session_private.get_wallet_balance(
+        accountType="UNIFIED",
+        coin="USDT",
+    )
+
+    return float(balance['result']['list'][0]['coin'][0]['availableToWithdraw'])

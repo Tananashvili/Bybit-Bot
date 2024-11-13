@@ -11,32 +11,3 @@ ps aux | grep python | grep test.py
 2. source venv/bin/activate
 3. cd Execution
 4. nohup python test.py &
-
-
-Results:
-starting capital: 80$
-trading days: 8
-ending capital: 130$
-PL: +62.5%
-
-starting capital: 300$
-
-day 1
-trade 1: + 35$ -- 335$
-trade 2: + 20$ -- 360$
-+20%
-
-day 2
-trade 1: + 40$ -- 405$
-trade 2: + 50$ -- 455$
-trade 3: + 30$ -- 485$
-+35%
-
-day 3
-trade 1: + 90$ -- 575$
-trade 2: + 40$ -- 615$
-+27%
-
-day 4
-trade 1: -105$ -- 510$
-trade 2: +550$ -- 560$

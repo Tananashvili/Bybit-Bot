@@ -5,14 +5,18 @@ from func_price_calls import get_latest_klines
 from func_stats import calculate_metrics
 from helping_functions import plot_trends
 
-config = get_position_variables()
-ticker_1 = config['ticker_1']
-ticker_2 = config['ticker_2']
-direction_1 = config['direction_1']
-direction_2 = config['direction_2']
 
 # Get latest z-score
-def get_latest_zscore():
+def get_latest_zscore(ticker_1=False, ticker_2=False, direction_1=False, direction_2=False, called=False):
+
+    # Get position variables
+    if not ticker_1:
+        config = get_position_variables()
+        ticker_1 = config['ticker_1']
+        ticker_2 = config['ticker_2']
+        direction_1 = config['direction_1']
+        direction_2 = config['direction_2']
+
     # Get latest asset orderbook prices and add dummy price for latest
     orderbook_1 = get_orderbook_info(ticker_1)
     mid_price_1 = get_trade_details(orderbook_1, direction_1)
@@ -35,8 +39,13 @@ def get_latest_zscore():
         _, zscore_list = calculate_metrics(series_1, series_2)
         zscore = zscore_list[-1]
 
+    if called:
+        return zscore
+    
+    else:
         print(zscore)
         plot_trends(ticker_1, ticker_2, series_1, series_2)
 
 
-get_latest_zscore()
+if "__main__" == __name__:
+    get_latest_zscore()
