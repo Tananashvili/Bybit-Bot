@@ -1,9 +1,9 @@
 {
-    "ticker_1": "ACHUSDT",
-    "ticker_2": "MANAUSDT",
-    "starting_zscore": -2.32,
-    "closing_zscore": 1.6,
-    "stop_loss": 3,
+    "ticker_1": "ACEUSDT",
+    "ticker_2": "NFPUSDT",
+    "starting_zscore": -3,
+    "closing_zscore": 2.3,
+    "stop_loss": 3.5,
     "capital": 495,
     "leverage": "10",
     "open_positions": true

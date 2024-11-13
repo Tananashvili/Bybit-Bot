@@ -73,16 +73,21 @@ def monitor_zscore():
             asyncio.run(send_telegram_message(message))
 
         if abs(zscore) <= abs(closing_zscore) or tpsl_filled:              
-            close_all_positions(ticker_1, ticker_2, mid_price_1, mid_price_2)
+            close_all_positions(ticker_1, ticker_2, mid_price_1, mid_price_2, direction_1)
 
             while True:
                 time.sleep(30)
+                
+                orderbook_1 = get_orderbook_info(ticker_1)
+                mid_price_1 = get_trade_details(orderbook_1, direction_1)
+                orderbook_2 = get_orderbook_info(ticker_2)
+                mid_price_2 = get_trade_details(orderbook_2, direction_2)
                 side_1, size_1, _ = get_position_info(ticker_1)
                 side_2, size_2, _ = get_position_info(ticker_2)
 
                 if float(size_1) > 0 or float(size_2) > 0:
                     cancel_all_orders()
-                    close_all_positions(ticker_1, ticker_2, mid_price_1, mid_price_2)
+                    close_all_positions(ticker_1, ticker_2, mid_price_1, mid_price_2, direction_1)
 
                 else:
                     if tpsl_filled:

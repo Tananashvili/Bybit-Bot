@@ -64,18 +64,21 @@ def place_limit_close_order(ticker, side, size, mid_price):
 
 
 # Close all positions for both tickers
-def close_all_positions(ticker_1, ticker_2, mid_price_1, mid_price_2):
+def close_all_positions(ticker_1, ticker_2, mid_price_1, mid_price_2, direction_1):
 
     # Get position information
     side_1, size_1, _ = get_position_info(ticker_1)
     side_2, size_2, _ = get_position_info(ticker_2)
 
+    if not side_1:
+        side_1 = 'Buy' if direction_1 == 'Long' else 'Sell'
+    if not side_2:
+        side_2 = 'Buy' if direction_1 == 'Short' else 'Sell'
+
     if float(size_1) > 0:
-        # place_market_close_order(ticker_1, side_2, size_1)  # use side 2
         place_limit_close_order(ticker_1, side_2, size_1, mid_price_1)
 
     if float(size_2) > 0:
-        # place_market_close_order(ticker_2, side_1, size_2)  # use side 1
         place_limit_close_order(ticker_2, side_1, size_2, mid_price_2)
 
     # Output results
