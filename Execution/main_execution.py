@@ -65,7 +65,7 @@ def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, starting_date, 
         _, zscore_list = calculate_metrics(series_1, series_2)
         zscore = zscore_list[-1]
 
-        if abs(zscore) > stop_loss:
+        if abs(zscore) > abs(stop_loss):
             message = f'{ticker_1} - {ticker_2} Position Zscore is Critical! {round(zscore, 2)}'
             asyncio.run(send_telegram_message(message))
             sent = True
@@ -186,7 +186,7 @@ def pick_pair():
                 
                 new_zscore = get_latest_zscore(ticker_1, ticker_2, direction_1, direction_2, True)
                 
-                if abs(new_zscore) > abs(zscore) * 1.25:
+                if abs(new_zscore) > abs(zscore) * 1.3:
                     capital = get_wallet_balance()
                     config_data = {
                         "ticker_1": ticker_1,

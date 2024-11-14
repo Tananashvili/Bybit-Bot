@@ -44,7 +44,7 @@ def get_latest_zscore(ticker_1=False, ticker_2=False, direction_1=False, directi
     
     else:
         print(zscore)
-        plot_trends(ticker_1, ticker_2, series_1, series_2)
+        # plot_trends(ticker_1, ticker_2, series_1, series_2)
 
 
 if "__main__" == __name__:
