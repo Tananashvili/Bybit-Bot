@@ -187,7 +187,7 @@ def pick_pair():
             
             new_zscore = get_latest_zscore(ticker_1, ticker_2, direction_1, direction_2, True)
             
-            if abs(new_zscore) > abs(zscore) * 1.1:
+            if abs(new_zscore) > abs(zscore) * 1.15:
                 capital = get_wallet_balance()
                 config_data = {
                     "ticker_1": ticker_1,
@@ -199,7 +199,8 @@ def pick_pair():
                     "leverage": config['leverage'],
                     "open_positions": config['open_positions']
                 }
-                
+                asyncio.run(send_telegram_message(f"Pair Found: {ticker_1} - {ticker_2}, Opening Positions."))
+
                 with open('config.json', 'w') as json_file:
                     json.dump(config_data, json_file, indent=4)
                 
