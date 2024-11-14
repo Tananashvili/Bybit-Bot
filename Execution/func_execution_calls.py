@@ -4,12 +4,12 @@ from helping_functions import round_quantity
 from func_calcultions import get_trade_details
 from pybit.exceptions import InvalidRequestError
 
-config = get_position_variables()
-leverage = config['leverage']
-capital = config['capital']
 
 # Set leverage
 def set_leverage(ticker):
+
+    config = get_position_variables()
+    leverage = config['leverage']
 
     # Set Isolated Mode
     session_private.set_margin_mode(
@@ -86,6 +86,10 @@ def check_order_status(ticker):
 
 # Initialise execution
 def initialise_order_execution(ticker, direction, qty=False):
+
+    config = get_position_variables()
+    leverage = config['leverage']
+    capital = config['capital']
     direction_reverse = 'Short' if direction == 'Long' else 'Long'
 
     ticker_info = session_public.get_instruments_info(

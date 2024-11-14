@@ -29,7 +29,7 @@ def get_ticker_trade_liquidity(ticker):
         return (avg_liq, res_trades_price)
     return (0, 0)
 
-get_ticker_trade_liquidity("BTCUSDT")
+
 # Get start times
 def get_timestamps():
     time_start_date = 0

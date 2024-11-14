@@ -13,7 +13,6 @@ from func_execution_calls import initialise_order_execution, check_order_status,
 from helping_functions import adjust_klines_when_date_changes
 from zscore_updates import get_latest_zscore
 
-
 warnings.filterwarnings("ignore", category=DeprecationWarning, message=".*utcnow.*")
 
 

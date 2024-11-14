@@ -1,10 +1,10 @@
 {
-    "ticker_1": "LQTYUSDT",
-    "ticker_2": "1000LUNCUSDT",
-    "starting_zscore": 2.85,
-    "closing_zscore": 2,
-    "stop_loss": 3.5,
-    "capital": 57,
+    "ticker_1": "10000000AIDOGEUSDT",
+    "ticker_2": "PHBUSDT",
+    "starting_zscore": 3.0308796062033125,
+    "closing_zscore": 2.2731597046524845,
+    "stop_loss": 3.7885995077541406,
+    "capital": 48.9728181192,
     "leverage": "10",
     "open_positions": true
 }
