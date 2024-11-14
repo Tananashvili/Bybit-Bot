@@ -1,6 +1,6 @@
 {
-    "ticker_1": "10000000AIDOGEUSDT",
-    "ticker_2": "PHBUSDT",
+    "ticker_1": "API3USDT",
+    "ticker_2": "OMNIUSDT",
     "starting_zscore": 3.0308796062033125,
     "closing_zscore": 2.2731597046524845,
     "stop_loss": 3.7885995077541406,
