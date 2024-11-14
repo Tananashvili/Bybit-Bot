@@ -132,6 +132,11 @@ def execute():
 
                 if order_1_status == 'Filled' and order_2_status == 'Filled':
                     asyncio.run(send_telegram_message('Both Orders Filled!'))
+                    _, _, liq_price_1 = get_position_info(ticker_1)
+                    _, _, liq_price_2 = get_position_info(ticker_2)
+
+                    set_tpsl(ticker_1, liq_price_1)
+                    set_tpsl(ticker_2, liq_price_2)
                     break
 
                 if order_1_status != 'Filled':
@@ -145,13 +150,7 @@ def execute():
         else:
             asyncio.run(send_telegram_message("Couldn't Place Order!"))
 
-    _, _, liq_price_1 = get_position_info(ticker_1)
-    _, _, liq_price_2 = get_position_info(ticker_2)
-
-    set_tpsl(ticker_1, liq_price_1)
-    set_tpsl(ticker_2, liq_price_2)
-
-    count = 15
+    count = 11
     starting_date = datetime.utcnow().date()
 
     while True:
@@ -176,34 +175,38 @@ def pick_pair():
     df = pd.read_excel('2_cointegrated_pairs.xlsx')
     top_20 = df.head(20)
 
-    while True:
-        for index, row in top_20.iterrows():
-            ticker_1 = row['sym_1']
-            ticker_2 = row['sym_2']
-            zscore = row['z_score']
-            direction_1 = "Short" if zscore > 0 else "Long"
-            direction_2 = "Long" if direction_1 == "Short" else "Short"
-            
-            new_zscore = get_latest_zscore(ticker_1, ticker_2, direction_1, direction_2, True)
-            
-            if abs(new_zscore) > abs(zscore) * 1.15:
-                capital = get_wallet_balance()
-                config_data = {
-                    "ticker_1": ticker_1,
-                    "ticker_2": ticker_2,
-                    "starting_zscore": new_zscore,
-                    "closing_zscore": new_zscore * 0.75,
-                    "stop_loss": new_zscore * 1.25,
-                    "capital": capital * 0.97,
-                    "leverage": config['leverage'],
-                    "open_positions": config['open_positions']
-                }
-                asyncio.run(send_telegram_message(f"Pair Found: {ticker_1} - {ticker_2}, Opening Positions."))
-
-                with open('config.json', 'w') as json_file:
-                    json.dump(config_data, json_file, indent=4)
+    if config['open_positions']:
+        while True:
+            for index, row in top_20.iterrows():
+                ticker_1 = row['sym_1']
+                ticker_2 = row['sym_2']
+                zscore = row['z_score']
+                direction_1 = "Short" if zscore > 0 else "Long"
+                direction_2 = "Long" if direction_1 == "Short" else "Short"
                 
-                execute()
-                break
+                new_zscore = get_latest_zscore(ticker_1, ticker_2, direction_1, direction_2, True)
+                
+                if abs(new_zscore) > abs(zscore) * 1.25:
+                    capital = get_wallet_balance()
+                    config_data = {
+                        "ticker_1": ticker_1,
+                        "ticker_2": ticker_2,
+                        "starting_zscore": new_zscore,
+                        "closing_zscore": new_zscore * 0.75,
+                        "stop_loss": new_zscore * 1.25,
+                        "capital": capital * 0.97,
+                        "leverage": config['leverage'],
+                        "open_positions": config['open_positions']
+                    }
+                    asyncio.run(send_telegram_message(f"Pair Found: {ticker_1} - {ticker_2}, Zscore is {new_zscore} Opening Positions..."))
+
+                    with open('config.json', 'w') as json_file:
+                        json.dump(config_data, json_file, indent=4)
+                    
+                    execute()
+                    return
+    else:
+        execute()
+        return
 
 pick_pair()
