@@ -195,7 +195,7 @@ def pick_pair():
                     "starting_zscore": new_zscore,
                     "closing_zscore": new_zscore * 0.75,
                     "stop_loss": new_zscore * 1.25,
-                    "capital": capital,
+                    "capital": capital * 0.97,
                     "leverage": config['leverage'],
                     "open_positions": config['open_positions']
                 }
