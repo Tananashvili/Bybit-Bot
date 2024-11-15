@@ -209,4 +209,5 @@ def pick_pair():
         execute()
         return
 
-pick_pair()
+if __name__ == "__main__":
+    pick_pair()
