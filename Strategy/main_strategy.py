@@ -36,12 +36,3 @@ if __name__ == "__main__":
     filter_data(coint_pairs)
     best_pair = pick_best_pair()
     asyncio.run(send_telegram_message(best_pair))
-
-    # # STEP 5 - Plot trends and save for backtesting
-    # print("Plotting trends...")
-    # symbol_1 = "OPUSDT"
-    # symbol_2 = "STEEMUSDT"
-    # with open("1_price_list.json") as json_file:
-    #     price_data = json.load(json_file)
-    #     if len(price_data) > 0:
-    #         plot_trends(symbol_1, symbol_2, price_data)
