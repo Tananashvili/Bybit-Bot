@@ -96,4 +96,4 @@ def pick_best_pair():
     df_sorted.to_excel('2_cointegrated_pairs.xlsx', index=False)
 
     best_row = df_sorted[['sym_1', 'sym_2']].iloc[0]
-    return f'Best Pair: {best_row['sym_1']} - {best_row['sym_2']}'
+    return f"Best Pair: {best_row['sym_1']} - {best_row['sym_2']}"
