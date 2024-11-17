@@ -1,4 +1,4 @@
-from func_cointegration import extract_close_prices, calculate_cointegration, calculate_spread, calculate_zscore
+from Strategy.func_cointegration import calculate_cointegration, calculate_spread, calculate_zscore
 import matplotlib.pyplot as plt
 import pandas as pd
 import plotly.graph_objs as go

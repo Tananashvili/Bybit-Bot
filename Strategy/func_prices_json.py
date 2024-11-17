@@ -1,5 +1,5 @@
-from func_price_klines import get_price_klines
-from helping_functions import get_orderbook_info, get_trade_details, extract_close_prices
+from Strategy.func_price_klines import get_price_klines
+from Strategy.helping_functions import get_orderbook_info, get_trade_details, extract_close_prices
 from pybit.exceptions import InvalidRequestError
 import json
 

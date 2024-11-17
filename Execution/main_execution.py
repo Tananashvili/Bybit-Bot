@@ -3,15 +3,15 @@ from telegram import Bot
 from dotenv import load_dotenv
 from datetime import datetime
 import pandas as pd
-from config_ws_connect import get_orderbook_info
-from config_execution_api import get_position_variables
-from func_calcultions import get_trade_details
-from func_price_calls import get_latest_klines
-from func_stats import calculate_metrics
-from func_close_positions import close_all_positions, get_position_info, cancel_order, cancel_all_orders
-from func_execution_calls import initialise_order_execution, check_order_status, set_tpsl, get_wallet_balance
-from helping_functions import adjust_klines_when_date_changes
-from zscore_updates import get_latest_zscore
+from Execution.config_ws_connect import get_orderbook_info
+from Execution.config_execution_api import get_position_variables
+from Execution.func_calcultions import get_trade_details
+from Execution.func_price_calls import get_latest_klines
+from Execution.func_stats import calculate_metrics
+from Execution.func_close_positions import close_all_positions, get_position_info, cancel_order, cancel_all_orders
+from Execution.func_execution_calls import initialise_order_execution, check_order_status, set_tpsl, get_wallet_balance
+from Execution.helping_functions import adjust_klines_when_date_changes
+from Execution.zscore_updates import get_latest_zscore
 
 warnings.filterwarnings("ignore", category=DeprecationWarning, message=".*utcnow.*")
 
@@ -186,14 +186,14 @@ def pick_pair():
                 
                 new_zscore = get_latest_zscore(ticker_1, ticker_2, direction_1, direction_2, True)
                 
-                if abs(new_zscore) > abs(zscore) * 1.3:
+                if abs(new_zscore) > abs(zscore) * 1.25:
                     capital = get_wallet_balance()
                     config_data = {
                         "ticker_1": ticker_1,
                         "ticker_2": ticker_2,
                         "starting_zscore": new_zscore,
-                        "closing_zscore": new_zscore * 0.75,
-                        "stop_loss": new_zscore * 1.25,
+                        "closing_zscore": new_zscore * 0.8,
+                        "stop_loss": new_zscore * 1.2,
                         "capital": capital * 0.97,
                         "leverage": config['leverage'],
                         "open_positions": config['open_positions']

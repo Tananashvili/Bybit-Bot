@@ -4,7 +4,7 @@
     limit: max size of 200
 """
 
-from config_strategy_api import session, timeframe, kline_limit
+from Strategy.config_strategy_api import session, timeframe, kline_limit
 import datetime
 import time
 

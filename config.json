@@ -1,10 +1,10 @@
 {
-    "ticker_1": "GLMRUSDT",
-    "ticker_2": "HBARUSDT",
-    "starting_zscore": -3.1644721180789417,
-    "closing_zscore": -2.373354088559206,
-    "stop_loss": -3.955590147598677,
-    "capital": 80.78007693509998,
+    "ticker_1": "10000000AIDOGEUSDT",
+    "ticker_2": "SEIUSDT",
+    "starting_zscore": -2.4246044882059166,
+    "closing_zscore": -1.9396835905647334,
+    "stop_loss": -2.9095253858471,
+    "capital": 29.6703321804,
     "leverage": "10",
     "open_positions": true
 }

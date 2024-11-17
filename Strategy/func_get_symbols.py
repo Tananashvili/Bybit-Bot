@@ -1,4 +1,4 @@
-from config_strategy_api import session
+from Strategy.config_strategy_api import session
 
 # Get symbols that are tradeable
 def get_tradeable_symbols():

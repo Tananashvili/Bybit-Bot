@@ -1,5 +1,5 @@
-from config_execution_api import session_public, timeframe, kline_limit
-from func_calcultions import extract_close_prices
+from Execution.config_execution_api import session_public, timeframe, kline_limit
+from Execution.func_calcultions import extract_close_prices
 import datetime
 import time
 
