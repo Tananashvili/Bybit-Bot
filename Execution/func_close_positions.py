@@ -3,7 +3,7 @@ import pybit.exceptions
 
 
 # Get position information
-def get_position_info(ticker):
+def get_position_info(ticker, percent=False):
 
     # Declare output variables
     side = 0
@@ -17,6 +17,10 @@ def get_position_info(ticker):
             size = position["result"]["list"][0]["size"]
             side = position["result"]["list"][0]["side"]
             liq = position["result"]["list"][0]["liqPrice"]
+            
+            if percent:
+                change_percent = position["result"]["list"][0]["unrealisedPnl"]
+                return side, size, change_percent
 
     # Return output
     return side, size, liq

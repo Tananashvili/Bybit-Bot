@@ -5,10 +5,8 @@ warnings.simplefilter(action="ignore", category=FutureWarning)
 from Strategy.func_get_symbols import get_tradeable_symbols
 from Strategy.func_prices_json import store_price_history
 from Strategy.func_cointegration import get_cointegrated_pairs
-from Strategy.func_plot_trends import plot_trends
-from Strategy.helping_functions import send_telegram_message, filter_data, pick_best_pair
+from Strategy.helping_functions import filter_data, pick_best_pair
 import json
-import asyncio
 
 BAD_PAIRS = []
 
@@ -33,5 +31,4 @@ if __name__ == "__main__":
 
     # STEP 4 - Filter Database
     filter_data(coint_pairs)
-    best_pair = pick_best_pair()
-    asyncio.run(send_telegram_message(best_pair))
+    pick_best_pair()

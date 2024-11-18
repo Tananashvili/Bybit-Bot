@@ -19,7 +19,7 @@ def get_position_variables():
     ticker_2 = config['ticker_2']
 
     starting_zscore = config['starting_zscore']
-    closing_zscore = config['closing_zscore']
+    desired_profit = config['desired_profit']
     stop_loss = config['stop_loss']
 
     capital = config['capital']
@@ -29,7 +29,7 @@ def get_position_variables():
     direction_1 = "Short" if starting_zscore > 0 else "Long"
     direction_2 = "Long" if direction_1 == "Short" else "Short"
 
-    return {'ticker_1': ticker_1, 'ticker_2': ticker_2, 'starting_zscore': starting_zscore, 'closing_zscore': closing_zscore,
+    return {'ticker_1': ticker_1, 'ticker_2': ticker_2, 'starting_zscore': starting_zscore, 'desired_profit': desired_profit,
             'stop_loss': stop_loss, 'capital': capital, 'leverage': leverage, 'open_positions': open_positions,
             'direction_1': direction_1, 'direction_2': direction_2}
 

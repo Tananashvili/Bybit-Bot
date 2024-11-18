@@ -66,8 +66,8 @@ def filter_data(coint_pairs):
 
     df = coint_pairs
 
-    df = df[df['abs'] >= 2]
-    df = df[df['zero_crossings'] >= 33]
+    df = df[df['abs'] >= 2.5]
+    df = df[df['zero_crossings'] >= 35]
 
     coin_counts = pd.concat([df['sym_1'], df['sym_2']]).value_counts()
     coins_to_remove = coin_counts[coin_counts > 5].index
@@ -84,7 +84,7 @@ def pick_best_pair():
     df = pd.read_excel('2_cointegrated_pairs.xlsx')
 
     columns = ['abs', 'zero_crossings']
-    weights = {'abs': 0.35, 'zero_crossings': 0.65}
+    weights = {'abs': 0.45, 'zero_crossings': 0.55}
 
     scaler = MinMaxScaler()
     df_normalized = pd.DataFrame(scaler.fit_transform(df[columns]), columns=columns)
@@ -94,6 +94,3 @@ def pick_best_pair():
 
     df_sorted = df.sort_values(by='score', ascending=False)
     df_sorted.to_excel('2_cointegrated_pairs.xlsx', index=False)
-
-    best_row = df_sorted[['sym_1', 'sym_2']].iloc[0]
-    return f"Best Pair: {best_row['sym_1']} - {best_row['sym_2']}"

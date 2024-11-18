@@ -18,7 +18,9 @@ while True:
     time_difference = current_time - starting_time
     if time_difference >= timedelta(hours=2) or count == 0:
 
+        asyncio.run(send_telegram_message("Getting Pairs..."))
         sym_response = get_tradeable_symbols()
+
         if len(sym_response) > 0:
             store_price_history(sym_response)
 
@@ -28,7 +30,7 @@ while True:
                 coint_pairs = get_cointegrated_pairs(price_data, BAD_PAIRS)
 
         filter_data(coint_pairs)
-        best_pair = pick_best_pair()
+        pick_best_pair()
         asyncio.run(send_telegram_message("Pairs saved and filtered. Searching best one..."))
         count += 1
     

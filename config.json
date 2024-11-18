@@ -1,9 +1,9 @@
 {
     "ticker_1": "BEAMUSDT",
     "ticker_2": "WOOUSDT",
-    "starting_zscore": 3.151459878128678,
-    "closing_zscore": 2.5211679025029423,
-    "stop_loss": 3.7817518537544133,
+    "starting_zscore": 3,
+    "desired_profit": 30,
+    "stop_loss": 30,
     "capital": 33.9356065968,
     "leverage": "10",
     "open_positions": true
