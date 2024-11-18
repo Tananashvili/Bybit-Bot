@@ -4,7 +4,6 @@
     "starting_zscore": 3,
     "desired_profit": 40,
     "stop_loss": 40,
-    "capital": 33.9356065968,
     "leverage": "5",
     "open_positions": true
 }

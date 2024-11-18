@@ -82,6 +82,15 @@ def check_order_status(ticker):
     
     except IndexError:
         return 'Filled', False
+    
+
+def get_wallet_balance():
+    balance = session_private.get_wallet_balance(
+        accountType="UNIFIED",
+        coin="USDT",
+    )
+
+    return float(balance['result']['list'][0]['coin'][0]['availableToWithdraw'])
 
 
 # Initialise execution
@@ -89,10 +98,13 @@ def initialise_order_execution(ticker, direction, qty=False, first_order=True):
 
     config = get_position_variables()
     leverage = config['leverage']
-    capital = config['capital']
-    if first_order:
-        capital *= 0.75
     direction_reverse = 'Short' if direction == 'Long' else 'Long'
+
+    capital = get_wallet_balance()
+    if first_order:
+        capital *= 0.85
+    else:
+        capital *= 0.97
 
     ticker_info = session_public.get_instruments_info(
         category='linear',
@@ -115,7 +127,6 @@ def initialise_order_execution(ticker, direction, qty=False, first_order=True):
     if "result" in order.keys():
         if "orderId" in order["result"]:
             return order["result"]["orderId"]
-            
 
 
 def set_tpsl(ticker, sl_price):
@@ -129,12 +140,3 @@ def set_tpsl(ticker, sl_price):
         )
     except InvalidRequestError:
         pass
-
-
-def get_wallet_balance():
-    balance = session_private.get_wallet_balance(
-        accountType="UNIFIED",
-        coin="USDT",
-    )
-
-    return float(balance['result']['list'][0]['coin'][0]['availableToWithdraw'])

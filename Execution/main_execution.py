@@ -44,6 +44,7 @@ def reopen_position(ticker, direction):
 
 def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desired_profit, count):
 
+    global position_reopened
     closed = False
     tpsl_filled = False
     if position_reopened:
@@ -196,14 +197,12 @@ def pick_pair():
                 new_zscore = get_latest_zscore(ticker_1, ticker_2, direction_1, direction_2, True)
                 
                 if abs(new_zscore) > abs(zscore) * 1.4:
-                    capital = get_wallet_balance()
                     config_data = {
                         "ticker_1": ticker_1,
                         "ticker_2": ticker_2,
                         "starting_zscore": new_zscore,
                         "desired_profit": config['desired_profit'],
                         "stop_loss": config['stop_loss'],
-                        "capital": capital * 0.97,
                         "leverage": config['leverage'],
                         "open_positions": config['open_positions']
                     }
