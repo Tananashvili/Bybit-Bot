@@ -85,11 +85,13 @@ def check_order_status(ticker):
 
 
 # Initialise execution
-def initialise_order_execution(ticker, direction, qty=False):
+def initialise_order_execution(ticker, direction, qty=False, first_order=True):
 
     config = get_position_variables()
     leverage = config['leverage']
     capital = config['capital']
+    if first_order:
+        capital *= 0.75
     direction_reverse = 'Short' if direction == 'Long' else 'Long'
 
     ticker_info = session_public.get_instruments_info(

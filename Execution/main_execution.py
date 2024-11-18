@@ -5,11 +5,11 @@ import pandas as pd
 from config_ws_connect import get_orderbook_info
 from config_execution_api import get_position_variables
 from func_calcultions import get_trade_details
-from func_price_calls import get_latest_klines
 from func_close_positions import close_all_positions, get_position_info, cancel_order, cancel_all_orders
 from func_execution_calls import initialise_order_execution, check_order_status, set_tpsl, get_wallet_balance
 from zscore_updates import get_latest_zscore
 
+position_reopened = False
 
 async def send_telegram_message(message):
     load_dotenv()
@@ -19,12 +19,35 @@ async def send_telegram_message(message):
     await bot.send_message(chat_id=chat_id, text=message)
 
 
+def reopen_position(ticker, direction):
+
+    order = initialise_order_execution(ticker, direction, first_order=False)
+    if order:
+        while True:
+
+            time.sleep(60)
+            order_status, left_qty = check_order_status(ticker)
+
+            if order_status == 'Filled':
+
+                asyncio.run(send_telegram_message('Order Reopened.'))
+                _, _, liq_price = get_position_info(ticker)
+                set_tpsl(ticker, liq_price)
+                break
+
+            if order_status != 'Filled':
+                cancel_order(ticker, order)
+                order = initialise_order_execution(ticker, direction, left_qty, False)
+    else:
+        asyncio.run(send_telegram_message("Couldn't Reopened Order."))
+
+
 def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desired_profit, count):
 
-    # Get latest price history
-    series_1, series_2 = get_latest_klines(ticker_1, ticker_2)
     closed = False
     tpsl_filled = False
+    if position_reopened:
+        desired_profit *= 1.5
 
     # Check if position is still active
     side_1, size_1, change_percent_1 = get_position_info(ticker_1, True)
@@ -32,52 +55,63 @@ def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desi
     change_percent = round(float(change_percent_1) + float(change_percent_2), 1)
 
     if float(size_1) == 0 or float(size_2) == 0:
-        tpsl_filled = True
 
-    # Get z_score and confirm if hot
-    if len(series_1) > 0 and len(series_2) > 0:
+        if float(size_1) == 0 and not position_reopened:
+            reopen_position(ticker_1, direction_1)
+            desired_profit *= 1.5
+            position_reopened = True
 
-        if change_percent <= -stop_loss and count % 3 == 0:
-            message = f'{ticker_1} - {ticker_2} Position PnL is Below SL: {change_percent}%'
-            asyncio.run(send_telegram_message(message))
+        elif float(size_2) == 0 and not position_reopened:
+            reopen_position(ticker_2, direction_2)
+            desired_profit *= 1.5
+            position_reopened = True
+        
+        else:
+            tpsl_filled = True
+            position_reopened = False
 
-        elif count % 20 == 0:
-            message = f'{ticker_1} - {ticker_2} PnL: {change_percent}%'
-            asyncio.run(send_telegram_message(message))
 
-        if change_percent >= desired_profit or tpsl_filled:
+    if change_percent <= -stop_loss and count % 3 == 0:
+        message = f'{ticker_1} - {ticker_2} Position PnL is Below SL: {change_percent}%'
+        asyncio.run(send_telegram_message(message))
 
-            orderbook_1 = get_orderbook_info(ticker_1)
-            mid_price_1 = get_trade_details(orderbook_1, direction_1)
-            orderbook_2 = get_orderbook_info(ticker_2)
-            mid_price_2 = get_trade_details(orderbook_2, direction_2)
+    elif count % 20 == 0:
+        message = f'{ticker_1} - {ticker_2} PnL: {change_percent}%'
+        asyncio.run(send_telegram_message(message))
 
-            close_all_positions(ticker_1, ticker_2, mid_price_1, mid_price_2, direction_1)
+    if change_percent >= desired_profit or tpsl_filled:
 
-            while True:
-                time.sleep(30)
-                side_1, size_1, _ = get_position_info(ticker_1)
-                side_2, size_2, _ = get_position_info(ticker_2)
+        orderbook_1 = get_orderbook_info(ticker_1)
+        mid_price_1 = get_trade_details(orderbook_1, direction_1)
+        orderbook_2 = get_orderbook_info(ticker_2)
+        mid_price_2 = get_trade_details(orderbook_2, direction_2)
 
-                if float(size_1) > 0 or float(size_2) > 0:
+        close_all_positions(ticker_1, ticker_2, mid_price_1, mid_price_2, direction_1)
 
-                    orderbook_1 = get_orderbook_info(ticker_1)
-                    mid_price_1 = get_trade_details(orderbook_1, direction_1)
-                    orderbook_2 = get_orderbook_info(ticker_2)
-                    mid_price_2 = get_trade_details(orderbook_2, direction_2)
+        while True:
+            time.sleep(30)
+            side_1, size_1, _ = get_position_info(ticker_1)
+            side_2, size_2, _ = get_position_info(ticker_2)
 
-                    cancel_all_orders()
-                    close_all_positions(ticker_1, ticker_2, mid_price_1, mid_price_2, direction_1)
+            if float(size_1) > 0 or float(size_2) > 0:
 
+                orderbook_1 = get_orderbook_info(ticker_1)
+                mid_price_1 = get_trade_details(orderbook_1, direction_1)
+                orderbook_2 = get_orderbook_info(ticker_2)
+                mid_price_2 = get_trade_details(orderbook_2, direction_2)
+
+                cancel_all_orders()
+                close_all_positions(ticker_1, ticker_2, mid_price_1, mid_price_2, direction_1)
+
+            else:
+                if tpsl_filled:
+                    message = f'Liquidated {ticker_1} - {ticker_2} Position. Loss is {change_percent}%'
                 else:
-                    if tpsl_filled:
-                        message = f'Liquidated {ticker_1} - {ticker_2} Position. Loss is {change_percent}%'
-                    else:
-                        message = f'CONGRATS!!! {ticker_1} - {ticker_2} Position Closed. PnL is {change_percent}%'
-                    
-                    asyncio.run(send_telegram_message(message))
-                    closed = True
-                    break
+                    message = f'CONGRATS!!! {ticker_1} - {ticker_2} Position Closed. PnL is {change_percent}%'
+                
+                asyncio.run(send_telegram_message(message))
+                closed = True
+                break
 
     return closed
 
