@@ -1,9 +1,9 @@
-from Execution.config_ws_connect import get_orderbook_info
-from Execution.config_execution_api import get_position_variables
-from Execution.func_calcultions import get_trade_details
-from Execution.func_price_calls import get_latest_klines
-from Execution.func_stats import calculate_metrics
-from Execution.helping_functions import plot_trends
+from config_ws_connect import get_orderbook_info
+from config_execution_api import get_position_variables
+from func_calcultions import get_trade_details
+from func_price_calls import get_latest_klines
+from func_stats import calculate_metrics
+from helping_functions import plot_trends
 
 
 # Get latest z-score

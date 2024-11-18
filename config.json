@@ -1,10 +1,10 @@
 {
-    "ticker_1": "10000000AIDOGEUSDT",
-    "ticker_2": "SEIUSDT",
-    "starting_zscore": -2.4246044882059166,
-    "closing_zscore": -1.9396835905647334,
-    "stop_loss": -2.9095253858471,
-    "capital": 29.6703321804,
+    "ticker_1": "BEAMUSDT",
+    "ticker_2": "WOOUSDT",
+    "starting_zscore": 3.151459878128678,
+    "closing_zscore": 2.5211679025029423,
+    "stop_loss": 3.7817518537544133,
+    "capital": 33.9356065968,
     "leverage": "10",
     "open_positions": true
 }
