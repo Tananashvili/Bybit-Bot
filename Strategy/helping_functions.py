@@ -67,7 +67,7 @@ def filter_data(coint_pairs):
     df = coint_pairs
 
     df = df[df['abs'] >= 2.2]
-    df = df[df['zero_crossings'] >= 33]
+    df = df[df['zero_crossings'] >= 30]
 
     coin_counts = pd.concat([df['sym_1'], df['sym_2']]).value_counts()
     coins_to_remove = coin_counts[coin_counts > 5].index

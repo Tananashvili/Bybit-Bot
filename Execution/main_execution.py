@@ -199,7 +199,7 @@ def pick_pair():
                 
                 new_zscore = get_latest_zscore(ticker_1, ticker_2, direction_1, direction_2, True)
                 
-                if abs(new_zscore) > abs(zscore) * 1.2:
+                if abs(new_zscore) > abs(zscore) * 1.25:
                     config_data = {
                         "ticker_1": ticker_1,
                         "ticker_2": ticker_2,
