@@ -1,7 +1,7 @@
 {
-    "ticker_1": "POWRUSDT",
-    "ticker_2": "SCUSDT",
-    "starting_zscore": -2.4,
+    "ticker_1": "BELUSDT",
+    "ticker_2": "MERLUSDT",
+    "starting_zscore": 2.4,
     "desired_profit": 40,
     "stop_loss": 40,
     "leverage": "10",

@@ -19,7 +19,11 @@ def get_position_info(ticker, percent=False):
             liq = position["result"]["list"][0]["liqPrice"]
             
             if percent:
-                change_percent = position["result"]["list"][0]["unrealisedPnl"]
+                leverage = position["result"]["list"][0]["leverage"]
+                position_value = position["result"]["list"][0]["positionValue"]
+                unrealised_pnl = position["result"]["list"][0]["unrealisedPnl"]
+                change_percent = float(unrealised_pnl) * float(leverage) / float(position_value) * 100
+                
                 return side, size, change_percent
 
     # Return output

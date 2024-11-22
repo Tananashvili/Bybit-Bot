@@ -55,7 +55,6 @@ def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desi
     side_2, size_2, change_percent_2 = get_position_info(ticker_2, True)
     try:
         change_percent = round(float(change_percent_1) + float(change_percent_2), 1)
-        change_percent *= 10
     except ValueError:
         change_percent = 0
 
