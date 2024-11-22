@@ -94,17 +94,16 @@ def get_wallet_balance():
 
 
 # Initialise execution
-def initialise_order_execution(ticker, direction, qty=False, first_order=True):
+def initialise_order_execution(ticker, direction, qty=False, first_order=True, size=False):
 
     config = get_position_variables()
     leverage = config['leverage']
     direction_reverse = 'Short' if direction == 'Long' else 'Long'
 
-    capital = get_wallet_balance()
     if first_order:
-        capital *= 0.85
+        capital = size * 0.85
     else:
-        capital *= 0.97
+        capital = size * 0.97
 
     ticker_info = session_public.get_instruments_info(
         category='linear',

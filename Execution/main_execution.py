@@ -21,7 +21,8 @@ async def send_telegram_message(message):
 
 def reopen_position(ticker, direction):
 
-    order = initialise_order_execution(ticker, direction, first_order=False)
+    capital = get_wallet_balance()
+    order = initialise_order_execution(ticker, direction, first_order=False, size=capital)
     if order:
         while True:
 
@@ -54,7 +55,7 @@ def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desi
     side_1, size_1, change_percent_1 = get_position_info(ticker_1, True)
     side_2, size_2, change_percent_2 = get_position_info(ticker_2, True)
     try:
-        change_percent = round(float(change_percent_1) + float(change_percent_2), 1)
+        change_percent = round((change_percent_1 + change_percent_2), 1)
     except ValueError:
         change_percent = 0
 
@@ -74,13 +75,11 @@ def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desi
             tpsl_filled = True
             position_reopened = False
 
-
-    if change_percent <= -stop_loss and count % 3 == 0:
-        message = f'{ticker_1} - {ticker_2} Position PnL is Below SL: {change_percent}%'
-        asyncio.run(send_telegram_message(message))
-
-    elif count % 20 == 0:
-        message = f'{ticker_1} - {ticker_2} PnL: {change_percent}%'
+    if count % 20 == 0:
+        if change_percent <= -stop_loss:
+            message = f'{ticker_1} - {ticker_2} Position PnL is Below SL: {change_percent}%'
+        else:
+            message = f'{ticker_1} - {ticker_2} PnL: {change_percent}%'
         asyncio.run(send_telegram_message(message))
 
     if change_percent >= desired_profit or tpsl_filled:
@@ -136,8 +135,9 @@ def execute():
 
     # PLACE ORDER
     if open_positions:
-        order_1 = initialise_order_execution(ticker_1, direction_1)
-        order_2 = initialise_order_execution(ticker_2, direction_2)
+        capital = get_wallet_balance()
+        order_1 = initialise_order_execution(ticker_1, direction_1, size=capital)
+        order_2 = initialise_order_execution(ticker_2, direction_2, size=capital)
 
         if order_1 and order_2:
             while True:
@@ -180,6 +180,14 @@ def execute():
         
         count += 1
         time.sleep(60)
+    
+    with open("config.json", "r") as file:
+        config = json.load(file)
+
+    config['open_positions'] = True
+
+    with open("config.json", "w") as file:
+        json.dump(config, file, indent=4)
 
 
 def pick_pair():

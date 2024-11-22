@@ -31,7 +31,7 @@ while True:
 
         filter_data(coint_pairs)
         pick_best_pair()
-        asyncio.run(send_telegram_message("Pairs saved and filtered. Searching best one..."))
+        asyncio.run(send_telegram_message("Pairs filtered. Searching best one..."))
         count += 1
     
     pick_pair()
