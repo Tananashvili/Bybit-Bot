@@ -55,7 +55,7 @@ def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desi
     side_1, size_1, change_percent_1 = get_position_info(ticker_1, True)
     side_2, size_2, change_percent_2 = get_position_info(ticker_2, True)
     try:
-        change_percent = round((change_percent_1 + change_percent_2), 1)
+        change_percent = round((change_percent_1 + change_percent_2) / 2, 1)
     except ValueError:
         change_percent = 0
 
@@ -197,6 +197,7 @@ def pick_pair():
 
     if config['open_positions']:
         while True:
+            c = 0
             for index, row in df.iterrows():
                 ticker_1 = row['sym_1']
                 ticker_2 = row['sym_2']
@@ -205,8 +206,20 @@ def pick_pair():
                 direction_2 = "Long" if direction_1 == "Short" else "Short"
                 
                 new_zscore = get_latest_zscore(ticker_1, ticker_2, direction_1, direction_2, True)
+
+                if c == 0:
+                    diff_treshold = 1.4
+                elif c in [2, 3, 4]:
+                    diff_treshold = 1.3
+                elif c in [5, 6]:
+                    diff_treshold = 1.25
+                elif c in [7, 8]:
+                    diff_treshold = 1.2
+                else:
+                    diff_treshold = 1.15
+                c += 1
                 
-                if abs(new_zscore) > abs(zscore) * 1.25:
+                if abs(new_zscore) > abs(zscore) * diff_treshold:
                     config_data = {
                         "ticker_1": ticker_1,
                         "ticker_2": ticker_2,

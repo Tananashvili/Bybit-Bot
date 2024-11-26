@@ -101,7 +101,7 @@ def initialise_order_execution(ticker, direction, qty=False, first_order=True, s
     direction_reverse = 'Short' if direction == 'Long' else 'Long'
 
     if first_order:
-        capital = size * 0.85
+        capital = size * 0.8
     else:
         capital = size * 0.97
 
