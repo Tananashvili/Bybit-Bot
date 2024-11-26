@@ -194,11 +194,10 @@ def pick_pair():
 
     config = get_position_variables()
     df = pd.read_excel('2_cointegrated_pairs.xlsx')
-    top_20 = df.head(20)
 
     if config['open_positions']:
         while True:
-            for index, row in top_20.iterrows():
+            for index, row in df.iterrows():
                 ticker_1 = row['sym_1']
                 ticker_2 = row['sym_2']
                 zscore = row['z_score']
