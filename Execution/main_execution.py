@@ -41,7 +41,7 @@ def reopen_position(ticker, direction):
 
             if order_status != 'Filled':
                 cancel_order(ticker, order)
-                order = initialise_order_execution(ticker, direction, left_qty, False)
+                order = initialise_order_execution(ticker, direction, qty=left_qty, first_order=False)
     else:
         asyncio.run(send_telegram_message("Couldn't Reopened Order."))
 
@@ -149,7 +149,7 @@ def execute():
                 order_1_status, left_qty_1 = check_order_status(ticker_1)
                 order_2_status, left_qty_2 = check_order_status(ticker_2)
 
-                if order_1_status == 'Filled' and order_2_status == 'Filled':
+                if order_1_status == 'Filled' and order_2_status == 'Filled' and left_qty_1 == 0 and left_qty_2 == 0:
                     asyncio.run(send_telegram_message('Both Orders Filled!'))
                     _, _, liq_price_1 = get_position_info(ticker_1)
                     _, _, liq_price_2 = get_position_info(ticker_2)
@@ -158,13 +158,13 @@ def execute():
                     set_tpsl(ticker_2, liq_price_2)
                     break
 
-                if order_1_status != 'Filled':
+                if order_1_status != 'Filled' and left_qty_1 != 0:
                     cancel_order(ticker_1, order_1)
-                    order_1 = initialise_order_execution(ticker_1, direction_1, left_qty_1)
+                    order_1 = initialise_order_execution(ticker_1, direction_1, qty=left_qty_1)
                 
-                if order_2_status != 'Filled':
+                if order_2_status != 'Filled' and left_qty_2 != 0:
                     cancel_order(ticker_2, order_2)
-                    order_2 = initialise_order_execution(ticker_2, direction_2, left_qty_2)
+                    order_2 = initialise_order_execution(ticker_2, direction_2, qty=left_qty_2)
 
         else:
             asyncio.run(send_telegram_message("Couldn't Place Order!"))
