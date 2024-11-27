@@ -7,6 +7,7 @@ from Strategy.helping_functions import send_telegram_message, filter_data, pick_
 from Execution.main_execution import pick_pair
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 BAD_PAIRS = []
 starting_time = datetime.utcnow()
@@ -32,6 +33,11 @@ while True:
         filter_data(coint_pairs)
         pick_best_pair()
         asyncio.run(send_telegram_message("Pairs filtered. Searching best one..."))
+
+        starting_time = datetime.utcnow()
         count += 1
     
-    pick_pair()
+    out = pick_pair()
+    if out == 'restart':
+        starting_time = datetime.utcnow()
+        count = 0

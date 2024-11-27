@@ -1,7 +1,8 @@
-import asyncio, os, time, json
+import asyncio, os, time, json, warnings
 from telegram import Bot
 from dotenv import load_dotenv
 import pandas as pd
+from datetime import datetime, timedelta
 from config_ws_connect import get_orderbook_info
 from config_execution_api import get_position_variables
 from func_calcultions import get_trade_details
@@ -9,6 +10,8 @@ from func_close_positions import close_all_positions, get_position_info, cancel_
 from func_execution_calls import initialise_order_execution, check_order_status, set_tpsl, get_wallet_balance
 from zscore_updates import get_latest_zscore
 
+warnings.simplefilter(action="ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 position_reopened = False
 
 async def send_telegram_message(message):
@@ -194,10 +197,16 @@ def pick_pair():
 
     config = get_position_variables()
     df = pd.read_excel('2_cointegrated_pairs.xlsx')
+    starting_time = datetime.utcnow()
 
     if config['open_positions']:
         while True:
             c = 0
+            current_time = datetime.utcnow()
+            time_difference = current_time - starting_time
+            if time_difference >= timedelta(hours=1):
+                return 'restart'
+            
             for index, row in df.iterrows():
                 ticker_1 = row['sym_1']
                 ticker_2 = row['sym_2']
