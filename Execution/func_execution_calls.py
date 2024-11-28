@@ -100,11 +100,6 @@ def initialise_order_execution(ticker, direction, qty=False, first_order=True, s
     leverage = config['leverage']
     direction_reverse = 'Short' if direction == 'Long' else 'Long'
 
-    if first_order:
-        capital = size * 0.8
-    else:
-        capital = size * 0.97
-
     ticker_info = session_public.get_instruments_info(
         category='linear',
         symbol=ticker
@@ -117,8 +112,12 @@ def initialise_order_execution(ticker, direction, qty=False, first_order=True, s
     if qty:
         quantity = qty
     else:
-        quantity = (capital * float(leverage)) / (2 * float(mid_price))
-        quantity = round_quantity(quantity, float(qty_step))
+        if first_order:
+            capital = size * 0.8 / 2
+        else:
+            capital = size * 0.97
+        quantity = (capital * float(leverage)) / float(mid_price)
+        quantity = round_quantity(quantity, float(qty_step))    
 
     set_leverage(ticker)
     order = place_order(ticker, mid_price, quantity, direction)
