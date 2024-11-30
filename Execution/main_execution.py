@@ -39,7 +39,7 @@ def reopen_position(ticker, direction):
                 set_tpsl(ticker, liq_price)
                 break
 
-            if order_status != 'Filled':
+            if order_status != 'Filled' and left_qty != 0:
                 cancel_order(ticker, order)
                 order = initialise_order_execution(ticker, direction, qty=left_qty, first_order=False)
     else:

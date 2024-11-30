@@ -77,11 +77,11 @@ def check_order_status(ticker):
         if order_status == 'PartiallyFilled':
             left_qty = order['result']['list'][0]['leavesQty']
         else:
-            left_qty = False
+            left_qty = 0
         return order_status, left_qty
     
     except IndexError:
-        return 'Filled', False
+        return 'Filled', 0
     
 
 def get_wallet_balance():
