@@ -64,19 +64,19 @@ def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desi
 
     if float(size_1) == 0 or float(size_2) == 0:
 
-        if float(size_1) == 0 and not position_reopened:
-            reopen_position(ticker_1, direction_1)
-            desired_profit *= 1.5
-            position_reopened = True
+        # if float(size_1) == 0 and not position_reopened:
+        #     reopen_position(ticker_1, direction_1)
+        #     desired_profit *= 1.5
+        #     position_reopened = True
 
-        elif float(size_2) == 0 and not position_reopened:
-            reopen_position(ticker_2, direction_2)
-            desired_profit *= 1.5
-            position_reopened = True
+        # elif float(size_2) == 0 and not position_reopened:
+        #     reopen_position(ticker_2, direction_2)
+        #     desired_profit *= 1.5
+        #     position_reopened = True
         
-        else:
-            tpsl_filled = True
-            position_reopened = False
+        # else:
+        tpsl_filled = True
+        position_reopened = False
 
     if count % 20 == 0:
         if change_percent <= -stop_loss:
