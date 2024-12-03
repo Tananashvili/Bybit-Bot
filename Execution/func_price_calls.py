@@ -1,5 +1,6 @@
 from config_execution_api import session_public, timeframe, kline_limit
 from func_calcultions import extract_close_prices
+from pybit.exceptions import FailedRequestError
 import datetime
 import time
 
@@ -51,22 +52,28 @@ def get_timestamps():
 def get_price_klines(ticker):
 
     # Get prices
-    time_start_seconds, _, _ = get_timestamps()
-    prices = session_public.get_mark_price_kline(
-        category="linear",
-        symbol=ticker,
-        interval=timeframe,
-        # start=time_start_seconds,          # ეს რო ამოვაგდე სწორად წამოიღო ფასები და არ ვიცი რამდენად საჭიროა ???
-        limit=kline_limit,
-    )
+    # time_start_seconds, _, _ = get_timestamps()
+    for attempt in range(3):
+        try:
+            prices = session_public.get_mark_price_kline(
+                category="linear",
+                symbol=ticker,
+                interval=timeframe,
+                # start=time_start_seconds,          # ეს რო ამოვაგდე სწორად წამოიღო ფასები და არ ვიცი რამდენად საჭიროა ???
+                limit=kline_limit,
+            )
 
-    # Manage API calls
-    time.sleep(0.1)
-
-    # Return prices output
-    if len(prices["result"]["list"]) != kline_limit:
-        return []
-    return prices["result"]["list"]
+            # Return prices output
+            time.sleep(0.1)
+            if len(prices["result"]["list"]) != kline_limit:
+                return []
+            return prices["result"]["list"]
+        
+        except FailedRequestError as e:
+            if attempt < 3:
+                time.sleep(5)
+            else:
+                raise    
 
 
 # Get latest klines
