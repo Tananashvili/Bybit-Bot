@@ -216,7 +216,7 @@ def pick_pair():
                 
                 new_zscore = get_latest_zscore(ticker_1, ticker_2, direction_1, direction_2, True)
 
-                if c == 0:
+                if c in [0, 1]:
                     diff_treshold = 1.4
                 elif c in [2, 3, 4]:
                     diff_treshold = 1.3
