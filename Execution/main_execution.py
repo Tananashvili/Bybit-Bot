@@ -200,8 +200,8 @@ def pick_pair():
     starting_time = datetime.utcnow()
 
     if config['open_positions']:
+        c = 0
         while True:
-            c = 0
             current_time = datetime.utcnow()
             time_difference = current_time - starting_time
             if time_difference >= timedelta(hours=1):
@@ -216,18 +216,18 @@ def pick_pair():
                 
                 new_zscore = get_latest_zscore(ticker_1, ticker_2, direction_1, direction_2, True)
 
-                if c in [0, 1]:
+                if c < 5:
                     diff_treshold = 1.4
-                elif c in [2, 3, 4]:
+                elif c < 10:
                     diff_treshold = 1.3
-                elif c in [5, 6]:
+                elif c < 15:
                     diff_treshold = 1.25
-                elif c in [7, 8]:
+                elif c < 20:
                     diff_treshold = 1.2
                 else:
-                    diff_treshold = 1.15
+                    diff_treshold = 1.1
                 c += 1
-                
+
                 if abs(new_zscore) > abs(zscore) * diff_treshold:
                     config_data = {
                         "ticker_1": ticker_1,
