@@ -78,14 +78,11 @@ def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desi
         tpsl_filled = True
         position_reopened = False
 
-    if count % 20 == 0:
-        if change_percent <= -stop_loss:
-            message = f'{ticker_1} - {ticker_2} Position PnL is Below SL: {change_percent}%'
-        else:
-            message = f'{ticker_1} - {ticker_2} PnL: {change_percent}%'
+    if count % 30 == 0:
+        message = f'{ticker_1} - {ticker_2} PnL: {change_percent}%'
         asyncio.run(send_telegram_message(message))
 
-    if change_percent >= desired_profit or tpsl_filled:
+    if change_percent >= desired_profit or change_percent <= -stop_loss or tpsl_filled:
 
         orderbook_1 = get_orderbook_info(ticker_1)
         mid_price_1 = get_trade_details(orderbook_1, direction_1)
@@ -111,9 +108,12 @@ def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desi
 
             else:
                 if tpsl_filled:
-                    message = f'Liquidated {ticker_1} - {ticker_2} Position. Loss is {change_percent}%'
+                    message = f'Liquidated {ticker_1} - {ticker_2} Position.'
                 else:
-                    message = f'CONGRATS!!! {ticker_1} - {ticker_2} Position Closed. PnL is {change_percent}%'
+                    if change_percent >= desired_profit:
+                        message = f'CONGRATS!!! {ticker_1} - {ticker_2} Position Closed. PnL is {change_percent}%'
+                    else:
+                        message = f'{ticker_1} - {ticker_2} Position Closed. PnL is {change_percent}%'
                 
                 asyncio.run(send_telegram_message(message))
                 closed = True
