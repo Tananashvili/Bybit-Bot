@@ -112,11 +112,7 @@ def initialise_order_execution(ticker, direction, qty=False, first_order=True, s
     if qty:
         quantity = qty
     else:
-        if first_order:
-            capital = size * 0.97 / 2
-        else:
-            capital = size * 0.97
-        quantity = (capital * float(leverage)) / float(mid_price)
+        quantity = (size * 0.97 * float(leverage)) / float(mid_price)
         quantity = round_quantity(quantity, float(qty_step))    
 
     set_leverage(ticker)
