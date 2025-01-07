@@ -12,7 +12,7 @@ from zscore_updates import get_latest_zscore
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning)
-position_reopened = False
+position_reopened = 0
 
 async def send_telegram_message(message):
     load_dotenv()
@@ -22,7 +22,7 @@ async def send_telegram_message(message):
     await bot.send_message(chat_id=chat_id, text=message)
 
 
-def reopen_position(ticker, direction):
+def reopen_position(ticker, direction, order_amount):
 
     capital = get_wallet_balance()
     order = initialise_order_execution(ticker, direction, first_order=False, size=capital)
@@ -46,13 +46,11 @@ def reopen_position(ticker, direction):
         asyncio.run(send_telegram_message("Couldn't Reopened Order."))
 
 
-def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desired_profit, count):
+def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desired_profit, order_amount, count):
 
     global position_reopened
     closed = False
     tpsl_filled = False
-    if position_reopened:
-        desired_profit *= 1.5
 
     # Check if position is still active
     side_1, size_1, change_percent_1 = get_position_info(ticker_1, True)
@@ -62,21 +60,28 @@ def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desi
     except ValueError:
         change_percent = 0
 
+    if change_percent_1 <= -30 and position_reopened <= 3:
+        reopen_position(ticker_1, direction_1, order_amount)
+        position_reopened += 1
+    
+    if change_percent_2 <= -30 and position_reopened <= 3:
+        reopen_position(ticker_2, direction_2, order_amount)
+        position_reopened += 1
+
     if float(size_1) == 0 or float(size_2) == 0:
 
         # if float(size_1) == 0 and not position_reopened:
-        #     reopen_position(ticker_1, direction_1)
+        #     reopen_position(ticker_1, direction_1, order_amount)
         #     desired_profit *= 1.5
         #     position_reopened = True
 
         # elif float(size_2) == 0 and not position_reopened:
-        #     reopen_position(ticker_2, direction_2)
+        #     reopen_position(ticker_2, direction_2, order_amount)
         #     desired_profit *= 1.5
         #     position_reopened = True
         
         # else:
         tpsl_filled = True
-        position_reopened = False
 
     if count % 30 == 0:
         message = f'{ticker_1} - {ticker_2} PnL: {change_percent}%'
@@ -139,8 +144,9 @@ def execute():
     # PLACE ORDER
     if open_positions:
         capital = get_wallet_balance()
-        order_1 = initialise_order_execution(ticker_1, direction_1, size=capital)
-        order_2 = initialise_order_execution(ticker_2, direction_2, size=capital)
+        order_amount = capital / 5
+        order_1 = initialise_order_execution(ticker_1, direction_1, size=order_amount)
+        order_2 = initialise_order_execution(ticker_2, direction_2, size=order_amount)
 
         if order_1 and order_2:
             while True:
@@ -177,7 +183,7 @@ def execute():
             desired_profit = config['desired_profit']
             stop_loss = config['stop_loss']
 
-        closed = monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desired_profit, count)
+        closed = monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desired_profit, order_amount, count)
         if closed:
             break
         
