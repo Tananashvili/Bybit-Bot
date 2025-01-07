@@ -24,8 +24,7 @@ async def send_telegram_message(message):
 
 def reopen_position(ticker, direction, order_amount):
 
-    capital = get_wallet_balance()
-    order = initialise_order_execution(ticker, direction, first_order=False, size=capital)
+    order = initialise_order_execution(ticker, direction, first_order=False, size=order_amount)
     if order:
         while True:
 
@@ -83,7 +82,7 @@ def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desi
         # else:
         tpsl_filled = True
 
-    if count % 30 == 0:
+    if count % 60 == 0:
         message = f'{ticker_1} - {ticker_2} PnL: {change_percent}%'
         asyncio.run(send_telegram_message(message))
 
@@ -115,10 +114,10 @@ def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desi
                 if tpsl_filled:
                     message = f'Liquidated {ticker_1} - {ticker_2} Position.'
                 else:
-                    if change_percent >= desired_profit:
-                        message = f'CONGRATS!!! {ticker_1} - {ticker_2} Position Closed. PnL is {change_percent}%'
+                    if change_percent >= desired_profit * 0.95:
+                        message = f'Positions Closed With Profit of {change_percent}%'
                     else:
-                        message = f'{ticker_1} - {ticker_2} Position Closed. PnL is {change_percent}%'
+                        message = f'Positions Closed With Loss of {change_percent}%'
                 
                 asyncio.run(send_telegram_message(message))
                 closed = True
@@ -149,11 +148,13 @@ def execute():
         order_2 = initialise_order_execution(ticker_2, direction_2, size=order_amount)
 
         if order_1 and order_2:
+            time.sleep(45)
             while True:
 
-                time.sleep(60)
                 order_1_status, left_qty_1 = check_order_status(ticker_1)
                 order_2_status, left_qty_2 = check_order_status(ticker_2)
+                asyncio.run(send_telegram_message(f'Order 1 Status: {order_1_status}, Order 1 Left Qty: {left_qty_1}'))  # FOR TESTING
+                asyncio.run(send_telegram_message(f'Order 2 Status: {order_2_status}, Order 2 Left Qty: {left_qty_2}'))  # FOR TESTING
 
                 if order_1_status == 'Filled' and order_2_status == 'Filled' and left_qty_1 == 0 and left_qty_2 == 0:
                     asyncio.run(send_telegram_message('Both Orders Filled!'))
@@ -171,24 +172,26 @@ def execute():
                 if order_2_status != 'Filled' and left_qty_2 != 0:
                     cancel_order(ticker_2, order_2)
                     order_2 = initialise_order_execution(ticker_2, direction_2, qty=left_qty_2)
+                time.sleep(45)
 
         else:
             asyncio.run(send_telegram_message("Couldn't Place Order!"))
 
-    count = 15
+    count = 30
     while True:
-        if count % 10 == 0:
-            config = get_position_variables()
 
-            desired_profit = config['desired_profit']
-            stop_loss = config['stop_loss']
+        # if count % 10 == 0:
+        #     config = get_position_variables()
+
+        #     desired_profit = config['desired_profit']
+        #     stop_loss = config['stop_loss']
 
         closed = monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desired_profit, order_amount, count)
         if closed:
             break
         
         count += 1
-        time.sleep(60)
+        time.sleep(30)
     
     with open("config.json", "r") as file:
         config = json.load(file)
@@ -244,7 +247,7 @@ def pick_pair():
                         "leverage": config['leverage'],
                         "open_positions": config['open_positions']
                     }
-                    asyncio.run(send_telegram_message(f"Pair Found: {ticker_1} - {ticker_2}, Zscore is {new_zscore} Opening Positions..."))
+                    asyncio.run(send_telegram_message(f"Pair Found: {ticker_1} - {ticker_2}. Opening Positions..."))
 
                     with open('config.json', 'w') as json_file:
                         json.dump(config_data, json_file, indent=4)
