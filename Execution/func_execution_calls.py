@@ -74,7 +74,7 @@ def check_order_status(ticker):
 
     try:
         order_status = order['result']['list'][0]['orderStatus']
-        if order_status == 'PartiallyFilled':
+        if order_status == 'PartiallyFilled' or order_status == 'New':
             left_qty = order['result']['list'][0]['leavesQty']
         else:
             left_qty = 0
