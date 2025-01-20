@@ -1,4 +1,4 @@
-from Strategy.config_strategy_api import session_public
+from config_strategy_api import session_public
 import math
 from dotenv import load_dotenv
 import os

@@ -13,7 +13,8 @@ def plot_trends(sym_1, sym_2, price_data):
     # Get spread and zscore
     coint_flag, p_value, t_value, c_value, hedge_ratio, zero_crossing = calculate_cointegration(prices_1, prices_2)
     spread = calculate_spread(prices_1, prices_2, hedge_ratio)
-    zscore = calculate_zscore(spread)
+    zscore_data = calculate_zscore(spread)
+    zscore_list = zscore_data["z_scores"]
 
     # Calculate percentage changes
     df = pd.DataFrame(columns=[sym_1, sym_2])
@@ -29,10 +30,10 @@ def plot_trends(sym_1, sym_2, price_data):
     df_2[sym_1] = prices_1
     df_2[sym_2] = prices_2
     df_2["Spread"] = spread
-    df_2["ZScore"] = zscore
+    df_2["ZScore"] = zscore_list
     df_2.to_csv("3_backtest_file.csv")
     print("File for backtesting saved.")
-    print(zscore[-1])
+    print(zscore_list[-1])
 
     # Create subplots
     fig = make_subplots(rows=3, cols=1, subplot_titles=[
@@ -49,7 +50,7 @@ def plot_trends(sym_1, sym_2, price_data):
     fig.add_trace(go.Scatter(x=list(range(len(spread))), y=spread, mode='lines', name='Spread'), row=2, col=1)
 
     # Add Z-Score plot
-    fig.add_trace(go.Scatter(x=list(range(len(zscore))), y=zscore, mode='lines', name='Z-Score'), row=3, col=1)
+    fig.add_trace(go.Scatter(x=list(range(len(zscore_list))), y=zscore_list, mode='lines', name='Z-Score'), row=3, col=1)
 
     # Add a horizontal line for Z-Score threshold (e.g., Z-score of 2)
     fig.add_hline(y=2, line_dash="dash", row=3, col=1, annotation_text="Z-score Threshold", annotation_position="bottom right")
