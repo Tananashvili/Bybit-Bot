@@ -59,13 +59,16 @@ def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desi
     except ValueError:
         change_percent = 0
 
-    if change_percent_1 <= -30 and position_reopened <= 3:
-        reopen_position(ticker_1, direction_1, order_amount)
-        position_reopened += 1
-    
-    if change_percent_2 <= -30 and position_reopened <= 3:
-        reopen_position(ticker_2, direction_2, order_amount)
-        position_reopened += 1
+    if change_percent < 20 and position_reopened < 2:
+        if change_percent_1 <= -30:
+            reopen_position(ticker_1, direction_1, order_amount)
+            position_reopened += 1
+            asyncio.run(send_telegram_message('Position Reopened'))
+        
+        if change_percent_2 <= -30:
+            reopen_position(ticker_2, direction_2, order_amount)
+            position_reopened += 1
+            asyncio.run(send_telegram_message('Position Reopened'))
 
     if float(size_1) == 0 or float(size_2) == 0:
 
@@ -143,7 +146,7 @@ def execute():
     # PLACE ORDER
     if open_positions:
         capital = get_wallet_balance()
-        order_amount = capital / 5
+        order_amount = capital / 4
         order_1 = initialise_order_execution(ticker_1, direction_1, size=order_amount)
         order_2 = initialise_order_execution(ticker_2, direction_2, size=order_amount)
 
