@@ -90,7 +90,7 @@ def get_wallet_balance():
         coin="USDT",
     )
 
-    return float(balance['result']['list'][0]['coin'][0]['availableToWithdraw'])
+    return float(balance['result']['list'][0]['coin'][0]['walletBalance'])
 
 
 # Initialise execution
