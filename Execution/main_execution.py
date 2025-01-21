@@ -156,8 +156,6 @@ def execute():
 
                 order_1_status, left_qty_1 = check_order_status(ticker_1)
                 order_2_status, left_qty_2 = check_order_status(ticker_2)
-                asyncio.run(send_telegram_message(f'Order 1 Status: {order_1_status}, Order 1 Left Qty: {left_qty_1}'))  # FOR TESTING
-                asyncio.run(send_telegram_message(f'Order 2 Status: {order_2_status}, Order 2 Left Qty: {left_qty_2}'))  # FOR TESTING
 
                 if order_1_status == 'Filled' and order_2_status == 'Filled' and left_qty_1 == 0 and left_qty_2 == 0:
                     asyncio.run(send_telegram_message('Both Orders Filled!'))
