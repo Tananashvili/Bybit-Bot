@@ -9,6 +9,7 @@ from func_calcultions import get_trade_details
 from func_close_positions import close_all_positions, get_position_info, cancel_order, cancel_all_orders
 from func_execution_calls import initialise_order_execution, check_order_status, set_tpsl, get_wallet_balance
 from zscore_updates import get_latest_zscore
+from pybit.exceptions import InvalidRequestError
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -39,8 +40,11 @@ def reopen_position(ticker, direction, order_amount):
                 break
 
             if order_status != 'Filled' and left_qty != 0:
-                cancel_order(ticker, order)
-                order = initialise_order_execution(ticker, direction, qty=left_qty, first_order=False)
+                try:
+                    cancel_order(ticker, order)
+                    order = initialise_order_execution(ticker, direction, qty=left_qty, first_order=False)
+                except InvalidRequestError:
+                    asyncio.run(send_telegram_message('Position Might not be Reopened!'))
     else:
         asyncio.run(send_telegram_message("Couldn't Reopened Order."))
 
@@ -167,12 +171,19 @@ def execute():
                     break
 
                 if order_1_status != 'Filled' and left_qty_1 != 0:
-                    cancel_order(ticker_1, order_1)
-                    order_1 = initialise_order_execution(ticker_1, direction_1, qty=left_qty_1)
+                    try:
+                        cancel_order(ticker_1, order_1)
+                        order_1 = initialise_order_execution(ticker_1, direction_1, qty=left_qty_1)
+                    except InvalidRequestError:
+                        asyncio.run(send_telegram_message('Position Might not be Opened!'))
                 
                 if order_2_status != 'Filled' and left_qty_2 != 0:
-                    cancel_order(ticker_2, order_2)
-                    order_2 = initialise_order_execution(ticker_2, direction_2, qty=left_qty_2)
+                    try:
+                        cancel_order(ticker_2, order_2)
+                        order_2 = initialise_order_execution(ticker_2, direction_2, qty=left_qty_2)
+                    except InvalidRequestError:
+                        asyncio.run(send_telegram_message('Position Might not be Opened!'))
+                        
                 time.sleep(45)
 
         else:
