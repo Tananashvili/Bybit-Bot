@@ -34,14 +34,14 @@ def reopen_position(ticker, direction, order_amount):
             time.sleep(60)
             order_status, left_qty = check_order_status(ticker)
 
-            if order_status == 'Filled':
+            if order_status == 'Filled' or order_status == 'Untriggered':
 
                 asyncio.run(send_telegram_message('Position Reopened.'))
                 _, _, liq_price = get_position_info(ticker)
                 set_tpsl(ticker, liq_price)
                 break
 
-            if order_status != 'Filled' and left_qty != 0:
+            if order_status != 'Filled' and order_status != 'Untriggered' and left_qty != 0:
                 try:
                     cancel_order(ticker, order)
                     order = initialise_order_execution(ticker, direction, qty=left_qty, first_order=False)
