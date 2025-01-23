@@ -13,7 +13,8 @@ from pybit.exceptions import InvalidRequestError
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning)
-position_reopened = 0
+position_reopened_1 = 1
+position_reopened_2 = 1
 DIVIDE_CAPITAL_BY = 4
 
 async def send_telegram_message(message):
@@ -52,26 +53,31 @@ def reopen_position(ticker, direction, order_amount):
 
 def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desired_profit, order_amount, count):
 
-    global position_reopened
+    global position_reopened_1
+    global position_reopened_2
     closed = False
     tpsl_filled = False
 
     # Check if position is still active
     side_1, size_1, change_percent_1 = get_position_info(ticker_1, True)
     side_2, size_2, change_percent_2 = get_position_info(ticker_2, True)
+    
+    change_percent_1 *= position_reopened_1
+    change_percent_2 *= position_reopened_2
+
     try:
         change_percent = round((change_percent_1 + change_percent_2) / 2, 1)
     except ValueError:
         change_percent = 0
 
-    if change_percent < 35 and position_reopened < 2:
+    if change_percent < 35 and position_reopened_1 + position_reopened_2 < 4:
         if change_percent_1 <= -30:
             reopen_position(ticker_1, direction_1, order_amount)
-            position_reopened += 1
+            position_reopened_1 += 1
         
         if change_percent_2 <= -30:
             reopen_position(ticker_2, direction_2, order_amount)
-            position_reopened += 1
+            position_reopened_2 += 1
 
     if float(size_1) == 0 or float(size_2) == 0:
 
