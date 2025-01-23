@@ -14,6 +14,7 @@ from pybit.exceptions import InvalidRequestError
 warnings.simplefilter(action="ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 position_reopened = 0
+DIVIDE_CAPITAL_BY = 4
 
 async def send_telegram_message(message):
     load_dotenv()
@@ -148,7 +149,7 @@ def execute():
     # PLACE ORDER
     if open_positions:
         capital = get_wallet_balance()
-        order_amount = capital / 4
+        order_amount = capital / DIVIDE_CAPITAL_BY
         order_1 = initialise_order_execution(ticker_1, direction_1, size=order_amount)
         order_2 = initialise_order_execution(ticker_2, direction_2, size=order_amount)
 
