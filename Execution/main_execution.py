@@ -34,7 +34,7 @@ def reopen_position(ticker, direction, order_amount):
 
             if order_status == 'Filled':
 
-                asyncio.run(send_telegram_message('Order Reopened.'))
+                asyncio.run(send_telegram_message('Position Reopened.'))
                 _, _, liq_price = get_position_info(ticker)
                 set_tpsl(ticker, liq_price)
                 break
@@ -46,7 +46,7 @@ def reopen_position(ticker, direction, order_amount):
                 except InvalidRequestError:
                     asyncio.run(send_telegram_message('Position Might not be Reopened!'))
     else:
-        asyncio.run(send_telegram_message("Couldn't Reopened Order."))
+        asyncio.run(send_telegram_message("Position Can't be Reopened."))
 
 
 def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desired_profit, order_amount, count):
@@ -63,16 +63,14 @@ def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desi
     except ValueError:
         change_percent = 0
 
-    if change_percent < 20 and position_reopened < 2:
+    if change_percent < 35 and position_reopened < 2:
         if change_percent_1 <= -30:
             reopen_position(ticker_1, direction_1, order_amount)
             position_reopened += 1
-            asyncio.run(send_telegram_message('Position Reopened'))
         
         if change_percent_2 <= -30:
             reopen_position(ticker_2, direction_2, order_amount)
             position_reopened += 1
-            asyncio.run(send_telegram_message('Position Reopened'))
 
     if float(size_1) == 0 or float(size_2) == 0:
 
