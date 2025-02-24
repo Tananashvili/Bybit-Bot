@@ -1,5 +1,6 @@
 from config_execution_api import session_private
 import pybit.exceptions
+import time
 
 
 # Get position information
@@ -9,28 +10,37 @@ def get_position_info(ticker, percent=False):
     side = 0
     size = ""
     liq = ""
+    max_retries = 5
+    delay = 10
 
     # Extract position info
-    position = session_private.get_positions(category="linear", symbol=ticker)
-    if "retMsg" in position.keys():
-        if position["retMsg"] == "OK":
-            size = position["result"]["list"][0]["size"]
-            side = position["result"]["list"][0]["side"]
-            liq = position["result"]["list"][0]["liqPrice"]
-            
-            if percent:
-                try:
-                    leverage = position["result"]["list"][0]["leverage"]
-                    position_value = position["result"]["list"][0]["positionValue"]
-                    unrealised_pnl = position["result"]["list"][0]["unrealisedPnl"]
-                    change_percent = float(unrealised_pnl) * float(leverage) / float(position_value) * 100
-                    return side, size, change_percent
-                
-                except ValueError:
-                    return 0, 0, 0
-
-    # Return output
-    return side, size, liq
+    for attempt in range(max_retries):
+        try:
+            position = session_private.get_positions(category="linear", symbol=ticker)
+            if "retMsg" in position.keys():
+                if position["retMsg"] == "OK":
+                    size = position["result"]["list"][0]["size"]
+                    side = position["result"]["list"][0]["side"]
+                    liq = position["result"]["list"][0]["liqPrice"]
+                    
+                    if percent:
+                        try:
+                            leverage = position["result"]["list"][0]["leverage"]
+                            position_value = position["result"]["list"][0]["positionValue"]
+                            unrealised_pnl = position["result"]["list"][0]["unrealisedPnl"]
+                            change_percent = float(unrealised_pnl) * float(leverage) / float(position_value) * 100
+                            return side, size, change_percent
+                        
+                        except ValueError:
+                            return 0, 0, 0
+            # Return output
+            return side, size, liq
+        
+        except:
+            if attempt < max_retries - 1:
+                time.sleep(delay)
+            else:
+                return 0, 0, 0
 
 
 #  Place market close order

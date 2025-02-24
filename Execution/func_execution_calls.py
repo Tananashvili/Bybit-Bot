@@ -116,7 +116,11 @@ def initialise_order_execution(ticker, direction, qty=False, first_order=True, s
         quantity = round_quantity(quantity, float(qty_step))    
 
     set_leverage(ticker)
-    order = place_order(ticker, mid_price, quantity, direction)
+    try:
+        order = place_order(ticker, mid_price, quantity, direction)
+    except InvalidRequestError:
+        quantity *= 0.97
+        order = place_order(ticker, mid_price, quantity, direction)
 
     if "result" in order.keys():
         if "orderId" in order["result"]:
