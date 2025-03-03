@@ -119,7 +119,7 @@ def initialise_order_execution(ticker, direction, qty=False, first_order=True, s
     try:
         order = place_order(ticker, mid_price, quantity, direction)
     except InvalidRequestError:
-        quantity *= 0.97
+        quantity = float(quantity) * 0.97
         order = place_order(ticker, mid_price, quantity, direction)
 
     if "result" in order.keys():
