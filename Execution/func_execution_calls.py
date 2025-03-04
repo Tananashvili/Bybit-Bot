@@ -112,14 +112,14 @@ def initialise_order_execution(ticker, direction, qty=False, first_order=True, s
     if qty:
         quantity = qty
     else:
-        quantity = (size * 0.95 * float(leverage)) / float(mid_price)
+        quantity = (size * 0.97 * float(leverage)) / float(mid_price)
         quantity = round_quantity(quantity, float(qty_step))    
 
     set_leverage(ticker)
     try:
         order = place_order(ticker, mid_price, quantity, direction)
     except InvalidRequestError:
-        quantity = float(quantity) * 0.95
+        quantity = float(quantity) * 0.97
         quantity = round_quantity(quantity, float(qty_step))
         order = place_order(ticker, mid_price, quantity, direction)
 
