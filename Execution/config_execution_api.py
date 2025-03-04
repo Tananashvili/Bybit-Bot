@@ -23,13 +23,14 @@ def get_position_variables():
     stop_loss = config['stop_loss']
 
     leverage = config['leverage']
+    c_leverage = config['c_leverage']
     open_positions = config['open_positions']
 
     direction_1 = "Short" if starting_zscore > 0 else "Long"
     direction_2 = "Long" if direction_1 == "Short" else "Short"
 
     return {'ticker_1': ticker_1, 'ticker_2': ticker_2, 'starting_zscore': starting_zscore, 'desired_profit': desired_profit,
-            'stop_loss': stop_loss, 'leverage': leverage, 'open_positions': open_positions,
+            'stop_loss': stop_loss, 'leverage': leverage, 'c_leverage': c_leverage, 'open_positions': open_positions,
             'direction_1': direction_1, 'direction_2': direction_2}
 
 # CONFIG VARIABLES
