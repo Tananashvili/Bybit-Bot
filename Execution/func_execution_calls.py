@@ -93,27 +93,31 @@ def get_wallet_balance():
     return float(balance['result']['list'][0]['coin'][0]['walletBalance'])
 
 
-def get_max_leverage(ticker):
-    risk_limit = session_private.get_risk_limit(
+def get_max_leverage(ticker_1, ticker_2):
+    risk_limit_1 = session_private.get_risk_limit(
         category="linear",
-        symbol=ticker,
+        symbol=ticker_1,
     )
 
-    return risk_limit['result']['list'][0]['maxLeverage']
+    risk_limit_2 = session_private.get_risk_limit(
+        category="linear",
+        symbol=ticker_2,
+    )
+    max_leverage_1 = risk_limit_1['result']['list'][0]['maxLeverage']
+    max_leverage_2 = risk_limit_2['result']['list'][0]['maxLeverage']
+
+    return min(float(max_leverage_1), float(max_leverage_2))
 
 
 # Initialise execution
-def initialise_order_execution(ticker, direction, qty=False, first_order=True, size=False):
-
-    config = get_position_variables()
-    leverage = config['leverage']
-    direction_reverse = 'Short' if direction == 'Long' else 'Long'
+def initialise_order_execution(ticker, direction, leverage, qty=False, first_order=True, size=False):
 
     ticker_info = session_public.get_instruments_info(
         category='linear',
         symbol=ticker
     )
     qty_step = ticker_info['result']['list'][0]['lotSizeFilter']['qtyStep']
+    direction_reverse = 'Short' if direction == 'Long' else 'Long'
 
     orderbook = get_orderbook_info(ticker)
     mid_price= get_trade_details(orderbook, direction_reverse)

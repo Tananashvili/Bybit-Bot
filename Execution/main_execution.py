@@ -7,7 +7,7 @@ from config_ws_connect import get_orderbook_info
 from config_execution_api import get_position_variables
 from func_calcultions import get_trade_details
 from func_close_positions import close_all_positions, get_position_info, cancel_order, cancel_all_orders
-from func_execution_calls import initialise_order_execution, check_order_status, set_tpsl, get_wallet_balance
+from func_execution_calls import initialise_order_execution, check_order_status, set_tpsl, get_wallet_balance, get_max_leverage
 from zscore_updates import get_latest_zscore
 from pybit.exceptions import InvalidRequestError
 
@@ -26,9 +26,9 @@ async def send_telegram_message(message):
     await bot.send_message(chat_id=chat_id, text=message)
 
 
-def reopen_position(ticker, direction, order_amount):
+def reopen_position(ticker, direction, order_amount, leverage):
 
-    order = initialise_order_execution(ticker, direction, first_order=False, size=order_amount)
+    order = initialise_order_execution(ticker, direction, leverage, first_order=False, size=order_amount)
     if order:
         while True:
 
@@ -45,14 +45,14 @@ def reopen_position(ticker, direction, order_amount):
             if order_status != 'Filled' and order_status != 'Untriggered' and left_qty != 0:
                 try:
                     cancel_order(ticker, order)
-                    order = initialise_order_execution(ticker, direction, qty=left_qty, first_order=False)
+                    order = initialise_order_execution(ticker, direction, leverage, qty=left_qty, first_order=False)
                 except InvalidRequestError:
                     asyncio.run(send_telegram_message('Position Might not be Reopened!'))
     else:
         asyncio.run(send_telegram_message("Position Can't be Reopened."))
 
 
-def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desired_profit, order_amount, count):
+def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, leverage, stop_loss, desired_profit, order_amount, count):
 
     global position_reopened_1
     global position_reopened_2
@@ -78,11 +78,11 @@ def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desi
 
     if change_percent < desired_profit and position_reopened_1 + position_reopened_2 < 4:
         if change_percent_1 <= -30:
-            reopen_position(ticker_1, direction_1, order_amount)
+            reopen_position(ticker_1, direction_1, order_amount, leverage)
             position_reopened_1 += 1
         
         if change_percent_2 <= -30:
-            reopen_position(ticker_2, direction_2, order_amount)
+            reopen_position(ticker_2, direction_2, order_amount, leverage)
             position_reopened_2 += 1
 
     if float(size_1) == 0 or float(size_2) == 0:
@@ -149,12 +149,22 @@ def execute():
     direction_2 = config['direction_2']
     order_amount = 0
 
+    my_leverage = config['leverage']
+    c_leverage = config['c_leverage']
+
+    if float(c_leverage) < float(my_leverage):
+        leverage = c_leverage
+        desired_profit = desired_profit * float(c_leverage) / float(my_leverage)
+        stop_loss = stop_loss * float(c_leverage) / float(my_leverage)
+    else:
+        leverage = my_leverage
+
     # PLACE ORDER
     if open_positions:
         capital = get_wallet_balance()
         order_amount = capital / DIVIDE_CAPITAL_BY
-        order_1 = initialise_order_execution(ticker_1, direction_1, size=order_amount)
-        order_2 = initialise_order_execution(ticker_2, direction_2, size=order_amount)
+        order_1 = initialise_order_execution(ticker_1, direction_1, leverage, size=order_amount)
+        order_2 = initialise_order_execution(ticker_2, direction_2, leverage, size=order_amount)
 
         if order_1 and order_2:
             time.sleep(45)
@@ -164,7 +174,7 @@ def execute():
                 order_2_status, left_qty_2 = check_order_status(ticker_2)
 
                 if order_1_status == 'Filled' and order_2_status == 'Filled' and left_qty_1 == 0 and left_qty_2 == 0:
-                    asyncio.run(send_telegram_message('Both Orders Filled!'))
+                    asyncio.run(send_telegram_message(f'Both Orders Filled! \n DP: {round(desired_profit, 1)}, SL: {round(stop_loss, 1)}'))
                     _, _, liq_price_1 = get_position_info(ticker_1)
                     _, _, liq_price_2 = get_position_info(ticker_2)
 
@@ -175,14 +185,14 @@ def execute():
                 if order_1_status != 'Filled' and left_qty_1 != 0:
                     try:
                         cancel_order(ticker_1, order_1)
-                        order_1 = initialise_order_execution(ticker_1, direction_1, qty=left_qty_1)
+                        order_1 = initialise_order_execution(ticker_1, direction_1, leverage, qty=left_qty_1)
                     except InvalidRequestError:
                         asyncio.run(send_telegram_message('Position Might not be Opened!'))
                 
                 if order_2_status != 'Filled' and left_qty_2 != 0:
                     try:
                         cancel_order(ticker_2, order_2)
-                        order_2 = initialise_order_execution(ticker_2, direction_2, qty=left_qty_2)
+                        order_2 = initialise_order_execution(ticker_2, direction_2, leverage, qty=left_qty_2)
                     except InvalidRequestError:
                         asyncio.run(send_telegram_message('Position Might not be Opened!'))
                         
@@ -200,7 +210,7 @@ def execute():
         #     desired_profit = config['desired_profit']
         #     stop_loss = config['stop_loss']
 
-        closed = monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desired_profit, order_amount, count)
+        closed = monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, leverage, stop_loss, desired_profit, order_amount, count)
         if closed:
             break
         
@@ -253,6 +263,8 @@ def pick_pair():
                     c += 1
 
                     if abs(new_zscore) > abs(zscore) * diff_treshold:
+
+                        c_leverage = get_max_leverage(ticker_1, ticker_2)
                         config_data = {
                             "ticker_1": ticker_1,
                             "ticker_2": ticker_2,
@@ -260,6 +272,7 @@ def pick_pair():
                             "desired_profit": config['desired_profit'],
                             "stop_loss": config['stop_loss'],
                             "leverage": config['leverage'],
+                            "c_leverage": str(c_leverage),
                             "open_positions": config['open_positions']
                         }
                         asyncio.run(send_telegram_message(f"Pair Found: {ticker_1} - {ticker_2}. Opening Positions..."))
