@@ -13,9 +13,10 @@ from pybit.exceptions import InvalidRequestError
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning)
-position_reopened_1 = 1
-position_reopened_2 = 1
-DIVIDE_CAPITAL_BY = 4
+position_reopened_1 = 2
+position_reopened_2 = 2
+DIVIDE_CAPITAL_BY = 2
+BAD_PAIRS = []
 
 async def send_telegram_message(message):
     load_dotenv()
@@ -61,16 +62,21 @@ def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desi
     # Check if position is still active
     side_1, size_1, change_percent_1 = get_position_info(ticker_1, True)
     side_2, size_2, change_percent_2 = get_position_info(ticker_2, True)
+
+    if float(size_1) == 0:
+        change_percent_1 = -70
+    if float(size_2) == 0:
+        change_percent_2 = -70
     
-    change_percent_1 *= position_reopened_1
-    change_percent_2 *= position_reopened_2
+    # change_percent_1 *= position_reopened_1
+    # change_percent_2 *= position_reopened_2
 
     try:
         change_percent = round((change_percent_1 + change_percent_2) / 2, 1)
     except ValueError:
         change_percent = 0
 
-    if change_percent < 35 and position_reopened_1 + position_reopened_2 < 4:
+    if change_percent < desired_profit and position_reopened_1 + position_reopened_2 < 4:
         if change_percent_1 <= -30:
             reopen_position(ticker_1, direction_1, order_amount)
             position_reopened_1 += 1
@@ -80,19 +86,9 @@ def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desi
             position_reopened_2 += 1
 
     if float(size_1) == 0 or float(size_2) == 0:
-
-        # if float(size_1) == 0 and not position_reopened:
-        #     reopen_position(ticker_1, direction_1, order_amount)
-        #     desired_profit *= 1.5
-        #     position_reopened = True
-
-        # elif float(size_2) == 0 and not position_reopened:
-        #     reopen_position(ticker_2, direction_2, order_amount)
-        #     desired_profit *= 1.5
-        #     position_reopened = True
-        
-        # else:
         tpsl_filled = True
+        if change_percent < 0:
+            BAD_PAIRS.append((ticker_1, ticker_2))
 
     if count % 60 == 0:
         message = f'{ticker_1} - {ticker_2} PnL: {change_percent}%'
@@ -124,7 +120,7 @@ def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, stop_loss, desi
 
             else:
                 if tpsl_filled:
-                    message = f'Liquidated {ticker_1} - {ticker_2} Position.'
+                    message = f'Positions Closed. Result is Around {change_percent}%'
                 else:
                     if change_percent >= desired_profit * 0.95:
                         message = f'Positions Closed With Profit of {change_percent}%'
@@ -151,6 +147,7 @@ def execute():
 
     direction_1 = config['direction_1']
     direction_2 = config['direction_2']
+    order_amount = 0
 
     # PLACE ORDER
     if open_positions:
@@ -240,37 +237,38 @@ def pick_pair():
                 direction_1 = "Short" if zscore > 0 else "Long"
                 direction_2 = "Long" if direction_1 == "Short" else "Short"
                 
-                new_zscore = get_latest_zscore(ticker_1, ticker_2, direction_1, direction_2, True)
+                if (ticker_1, ticker_2) not in BAD_PAIRS:
+                    new_zscore = get_latest_zscore(ticker_1, ticker_2, direction_1, direction_2, True)
 
-                if c < 5:
-                    diff_treshold = 1.4
-                elif c < 10:
-                    diff_treshold = 1.3
-                elif c < 15:
-                    diff_treshold = 1.25
-                elif c < 20:
-                    diff_treshold = 1.2
-                else:
-                    diff_treshold = 1.1
-                c += 1
+                    if c < 5:
+                        diff_treshold = 1.4
+                    elif c < 10:
+                        diff_treshold = 1.3
+                    elif c < 15:
+                        diff_treshold = 1.25
+                    elif c < 20:
+                        diff_treshold = 1.2
+                    else:
+                        diff_treshold = 1.1
+                    c += 1
 
-                if abs(new_zscore) > abs(zscore) * diff_treshold:
-                    config_data = {
-                        "ticker_1": ticker_1,
-                        "ticker_2": ticker_2,
-                        "starting_zscore": new_zscore,
-                        "desired_profit": config['desired_profit'],
-                        "stop_loss": config['stop_loss'],
-                        "leverage": config['leverage'],
-                        "open_positions": config['open_positions']
-                    }
-                    asyncio.run(send_telegram_message(f"Pair Found: {ticker_1} - {ticker_2}. Opening Positions..."))
+                    if abs(new_zscore) > abs(zscore) * diff_treshold:
+                        config_data = {
+                            "ticker_1": ticker_1,
+                            "ticker_2": ticker_2,
+                            "starting_zscore": new_zscore,
+                            "desired_profit": config['desired_profit'],
+                            "stop_loss": config['stop_loss'],
+                            "leverage": config['leverage'],
+                            "open_positions": config['open_positions']
+                        }
+                        asyncio.run(send_telegram_message(f"Pair Found: {ticker_1} - {ticker_2}. Opening Positions..."))
 
-                    with open('config.json', 'w') as json_file:
-                        json.dump(config_data, json_file, indent=4)
-                    
-                    execute()
-                    return
+                        with open('config.json', 'w') as json_file:
+                            json.dump(config_data, json_file, indent=4)
+                        
+                        execute()
+                        return
     else:
         execute()
         return

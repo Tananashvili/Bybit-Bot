@@ -93,6 +93,15 @@ def get_wallet_balance():
     return float(balance['result']['list'][0]['coin'][0]['walletBalance'])
 
 
+def get_max_leverage(ticker):
+    risk_limit = session_private.get_risk_limit(
+        category="linear",
+        symbol=ticker,
+    )
+
+    return risk_limit['result']['list'][0]['maxLeverage']
+
+
 # Initialise execution
 def initialise_order_execution(ticker, direction, qty=False, first_order=True, size=False):
 
