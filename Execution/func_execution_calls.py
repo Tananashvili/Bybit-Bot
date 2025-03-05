@@ -6,28 +6,22 @@ from pybit.exceptions import InvalidRequestError
 
 
 # Set leverage
-def set_leverage(ticker):
+def set_leverage(ticker, x):
 
-    config = get_position_variables()
-    leverage = config['leverage']
-
-    # Set Isolated Mode
     session_private.set_margin_mode(
         setMarginMode="ISOLATED_MARGIN",
     )
 
-    # Setting the leverage
     try:
         session_private.set_leverage(
             category="linear",
             symbol=ticker,
-            buyLeverage=leverage,
-            sellLeverage=leverage,
+            buyLeverage=x,
+            sellLeverage=x,
         )
     except InvalidRequestError:
         pass
 
-    # Return
     return
 
 
@@ -128,7 +122,7 @@ def initialise_order_execution(ticker, direction, leverage, qty=False, first_ord
         quantity = (size * 0.97 * float(leverage)) / float(mid_price)
         quantity = round_quantity(quantity, float(qty_step))    
 
-    set_leverage(ticker)
+    set_leverage(ticker, leverage)
     try:
         order = place_order(ticker, mid_price, quantity, direction)
     except InvalidRequestError:
