@@ -88,7 +88,8 @@ def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, leverage, stop_
     if float(size_1) == 0 or float(size_2) == 0:
         tpsl_filled = True
         if change_percent < 0:
-            BAD_PAIRS.append((ticker_1, ticker_2))
+            BAD_PAIRS.append(ticker_1)
+            BAD_PAIRS.append(ticker_2)
 
     if count % 60 == 0:
         message = f'{ticker_1} - {ticker_2} PnL: {change_percent}%'
@@ -247,7 +248,7 @@ def pick_pair():
                 direction_1 = "Short" if zscore > 0 else "Long"
                 direction_2 = "Long" if direction_1 == "Short" else "Short"
                 
-                if (ticker_1, ticker_2) not in BAD_PAIRS:
+                if ticker_1 not in BAD_PAIRS and ticker_2 not in BAD_PAIRS:
                     new_zscore = get_latest_zscore(ticker_1, ticker_2, direction_1, direction_2, True)
 
                     if c < 5:
