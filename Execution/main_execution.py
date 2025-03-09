@@ -16,7 +16,6 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 position_reopened_1 = 2
 position_reopened_2 = 2
 DIVIDE_CAPITAL_BY = 2
-BAD_PAIRS = []
 
 async def send_telegram_message(message):
     load_dotenv()
@@ -58,6 +57,7 @@ def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, leverage, stop_
     global position_reopened_2
     closed = False
     tpsl_filled = False
+    bad_pair = ''
 
     # Check if position is still active
     side_1, size_1, change_percent_1 = get_position_info(ticker_1, True)
@@ -65,8 +65,12 @@ def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, leverage, stop_
 
     if float(size_1) == 0:
         change_percent_1 = -70
+        tpsl_filled = True
+        bad_pair = ticker_1
     if float(size_2) == 0:
         change_percent_2 = -70
+        tpsl_filled = True
+        bad_pair = ticker_2
     
     # change_percent_1 *= position_reopened_1
     # change_percent_2 *= position_reopened_2
@@ -84,12 +88,6 @@ def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, leverage, stop_
         if change_percent_2 <= -30:
             reopen_position(ticker_2, direction_2, order_amount, leverage)
             position_reopened_2 += 1
-
-    if float(size_1) == 0 or float(size_2) == 0:
-        tpsl_filled = True
-        if change_percent < 0:
-            BAD_PAIRS.append(ticker_1)
-            BAD_PAIRS.append(ticker_2)
 
     if count % 60 == 0:
         message = f'{ticker_1} - {ticker_2} PnL: {change_percent}%'
@@ -132,7 +130,7 @@ def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, leverage, stop_
                 closed = True
                 break
 
-    return closed
+    return closed, bad_pair
 
 
 def execute():
@@ -211,7 +209,7 @@ def execute():
         #     desired_profit = config['desired_profit']
         #     stop_loss = config['stop_loss']
 
-        closed = monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, leverage, stop_loss, desired_profit, order_amount, count)
+        closed, bad_pair = monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, leverage, stop_loss, desired_profit, order_amount, count)
         if closed:
             break
         
@@ -225,9 +223,11 @@ def execute():
 
     with open("config.json", "w") as file:
         json.dump(config, file, indent=4)
+    
+    return bad_pair
 
 
-def pick_pair():
+def pick_pair(BAD_PAIRS):
 
     config = get_position_variables()
     df = pd.read_excel('2_cointegrated_pairs.xlsx')
@@ -281,11 +281,8 @@ def pick_pair():
                         with open('config.json', 'w') as json_file:
                             json.dump(config_data, json_file, indent=4)
                         
-                        execute()
-                        return
+                        bad_pair = execute()
+                        return bad_pair
     else:
-        execute()
-        return
-
-if __name__ == "__main__":
-    pick_pair()
+        bad_pair = execute()
+        return bad_pair

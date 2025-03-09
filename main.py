@@ -37,7 +37,9 @@ while True:
         starting_time = datetime.utcnow()
         count += 1
     
-    out = pick_pair()
+    out = pick_pair(BAD_PAIRS)
     if out == 'restart':
         starting_time = datetime.utcnow()
         count = 0
+    else:
+        BAD_PAIRS.append(out)
