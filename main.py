@@ -42,4 +42,4 @@ while True:
         starting_time = datetime.utcnow()
         count = 0
     else:
-        BAD_PAIRS.append(out)
+        BAD_PAIRS.extend(out)

@@ -66,11 +66,10 @@ def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, leverage, stop_
     if float(size_1) == 0:
         change_percent_1 = -70
         tpsl_filled = True
-        bad_pair = ticker_1
+
     if float(size_2) == 0:
         change_percent_2 = -70
         tpsl_filled = True
-        bad_pair = ticker_2
     
     # change_percent_1 *= position_reopened_1
     # change_percent_2 *= position_reopened_2
@@ -119,11 +118,13 @@ def monitor_zscore(ticker_1, ticker_2, direction_1, direction_2, leverage, stop_
 
             else:
                 if tpsl_filled:
+                    bad_pair = [ticker_1, ticker_2]
                     message = f'Positions Closed. Result is Around {change_percent}%'
                 else:
                     if change_percent >= desired_profit * 0.95:
                         message = f'Positions Closed With Profit of {change_percent}%'
                     else:
+                        bad_pair = [ticker_1, ticker_2]
                         message = f'Positions Closed With Loss of {change_percent}%'
                 
                 asyncio.run(send_telegram_message(message))
