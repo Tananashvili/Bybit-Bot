@@ -68,3 +68,5 @@ def plot_trends(sym_1, sym_2, price_data):
     fig.show()
 
 
+
+

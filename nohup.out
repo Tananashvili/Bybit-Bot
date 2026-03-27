@@ -1,0 +1,106 @@
+Prices saved successfully.
+API3USDT Close Order Created!
+LISTAUSDT Close Order Created!
+LISTAUSDT Close Order Created!
+LISTAUSDT Close Order Created!
+Traceback (most recent call last):
+  File "/home/ubuntu/Bybit-Bot/Execution/func_execution_calls.py", line 127, in initialise_order_execution
+    order = place_order(ticker, mid_price, quantity, direction)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/Bybit-Bot/Execution/func_execution_calls.py", line 39, in place_order
+    order = session_private.place_order(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/Bybit-Bot/venv/lib/python3.12/site-packages/pybit/_v5_trade.py", line 21, in place_order
+    return self._submit_request(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/Bybit-Bot/venv/lib/python3.12/site-packages/pybit/_http_manager.py", line 379, in _submit_request
+    raise InvalidRequestError(
+pybit.exceptions.InvalidRequestError: Order does not meet minimum order value 5USDT (ErrCode: 110094) (ErrTime: 09:17:26).
+Request → POST https://api.bybit.com/v5/order/create: {"category": "linear", "symbol": "NMRUSDT", "side": "Sell", "orderType": "Limit", "qty": "0.3", "price": "10.575"}.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/Bybit-Bot/main.py", line 40, in <module>
+    out = pick_pair(BAD_PAIRS)
+          ^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/Bybit-Bot/Execution/main_execution.py", line 285, in pick_pair
+    bad_pair = execute()
+               ^^^^^^^^^
+  File "/home/ubuntu/Bybit-Bot/Execution/main_execution.py", line 166, in execute
+    order_1 = initialise_order_execution(ticker_1, direction_1, leverage, size=order_amount)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/Bybit-Bot/Execution/func_execution_calls.py", line 131, in initialise_order_execution
+    order = place_order(ticker, mid_price, quantity, direction)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/Bybit-Bot/Execution/func_execution_calls.py", line 39, in place_order
+    order = session_private.place_order(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/Bybit-Bot/venv/lib/python3.12/site-packages/pybit/_v5_trade.py", line 21, in place_order
+    return self._submit_request(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/Bybit-Bot/venv/lib/python3.12/site-packages/pybit/_http_manager.py", line 379, in _submit_request
+    raise InvalidRequestError(
+pybit.exceptions.InvalidRequestError: Order does not meet minimum order value 5USDT (ErrCode: 110094) (ErrTime: 09:17:26).
+Request → POST https://api.bybit.com/v5/order/create: {"category": "linear", "symbol": "NMRUSDT", "side": "Sell", "orderType": "Limit", "qty": "0.2", "price": "10.575"}.
+Prices saved successfully.
+ICXUSDT Close Order Created!
+ARBUSDT Close Order Created!
+ARBUSDT Close Order Created!
+RENDERUSDT Close Order Created!
+AUDIOUSDT Close Order Created!
+AUDIOUSDT Close Order Created!
+Prices saved successfully.
+Prices saved successfully.
+1000BONKUSDT Close Order Created!
+AXSUSDT Close Order Created!
+MBLUSDT Close Order Created!
+MTLUSDT Close Order Created!
+MBLUSDT Close Order Created!
+Prices saved successfully.
+STXUSDT Close Order Created!
+1000FLOKIUSDT Close Order Created!
+STRKUSDT Close Order Created!
+STRKUSDT Close Order Created!
+Prices saved successfully.
+AEROUSDT Close Order Created!
+Traceback (most recent call last):
+  File "/home/ubuntu/Bybit-Bot/Execution/func_execution_calls.py", line 127, in initialise_order_execution
+    order = place_order(ticker, mid_price, quantity, direction)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/Bybit-Bot/Execution/func_execution_calls.py", line 39, in place_order
+    order = session_private.place_order(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/Bybit-Bot/venv/lib/python3.12/site-packages/pybit/_v5_trade.py", line 21, in place_order
+    return self._submit_request(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/Bybit-Bot/venv/lib/python3.12/site-packages/pybit/_http_manager.py", line 379, in _submit_request
+    raise InvalidRequestError(
+pybit.exceptions.InvalidRequestError: Order does not meet minimum order value 5USDT (ErrCode: 110094) (ErrTime: 00:57:48).
+Request → POST https://api.bybit.com/v5/order/create: {"category": "linear", "symbol": "ATHUSDT", "side": "Buy", "orderType": "Limit", "qty": "140", "price": "0.03043"}.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/Bybit-Bot/main.py", line 40, in <module>
+    out = pick_pair(BAD_PAIRS)
+          ^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/Bybit-Bot/Execution/main_execution.py", line 285, in pick_pair
+    bad_pair = execute()
+               ^^^^^^^^^
+  File "/home/ubuntu/Bybit-Bot/Execution/main_execution.py", line 166, in execute
+    order_1 = initialise_order_execution(ticker_1, direction_1, leverage, size=order_amount)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/Bybit-Bot/Execution/func_execution_calls.py", line 131, in initialise_order_execution
+    order = place_order(ticker, mid_price, quantity, direction)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/Bybit-Bot/Execution/func_execution_calls.py", line 39, in place_order
+    order = session_private.place_order(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/Bybit-Bot/venv/lib/python3.12/site-packages/pybit/_v5_trade.py", line 21, in place_order
+    return self._submit_request(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/Bybit-Bot/venv/lib/python3.12/site-packages/pybit/_http_manager.py", line 379, in _submit_request
+    raise InvalidRequestError(
+pybit.exceptions.InvalidRequestError: Order does not meet minimum order value 5USDT (ErrCode: 110094) (ErrTime: 00:57:49).
+Request → POST https://api.bybit.com/v5/order/create: {"category": "linear", "symbol": "ATHUSDT", "side": "Buy", "orderType": "Limit", "qty": "130", "price": "0.03043"}.

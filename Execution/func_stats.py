@@ -1,4 +1,4 @@
-from config_execution_api import z_score_window
+from Execution.config_execution_api import z_score_window
 from statsmodels.tsa.stattools import coint
 import statsmodels.api as sm
 import pandas as pd

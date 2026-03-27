@@ -3,12 +3,12 @@ from telegram import Bot
 from dotenv import load_dotenv
 import pandas as pd
 from datetime import datetime, timedelta
-from config_ws_connect import get_orderbook_info
-from config_execution_api import get_position_variables
-from func_calcultions import get_trade_details
-from func_close_positions import close_all_positions, get_position_info, cancel_order, cancel_all_orders
-from func_execution_calls import initialise_order_execution, check_order_status, set_tpsl, get_wallet_balance, get_max_leverage
-from zscore_updates import get_latest_zscore
+from Execution.config_ws_connect import get_orderbook_info
+from Execution.config_execution_api import get_position_variables
+from Execution.func_calcultions import get_trade_details
+from Execution.func_close_positions import close_all_positions, get_position_info, cancel_order, cancel_all_orders
+from Execution.func_execution_calls import initialise_order_execution, check_order_status, set_tpsl, get_wallet_balance, get_max_leverage
+from Execution.zscore_updates import get_latest_zscore
 from pybit.exceptions import InvalidRequestError
 
 warnings.simplefilter(action="ignore", category=FutureWarning)

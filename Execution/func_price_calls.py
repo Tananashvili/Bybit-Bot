@@ -1,5 +1,5 @@
-from config_execution_api import session_public, timeframe, kline_limit
-from func_calcultions import extract_close_prices
+from Execution.config_execution_api import session_public, timeframe, kline_limit
+from Execution.func_calcultions import extract_close_prices
 from pybit.exceptions import FailedRequestError
 import datetime
 import time
@@ -59,7 +59,7 @@ def get_price_klines(ticker):
                 category="linear",
                 symbol=ticker,
                 interval=timeframe,
-                # start=time_start_seconds,          # ეს რო ამოვაგდე სწორად წამოიღო ფასები და არ ვიცი რამდენად საჭიროა ???
+                # start=time_start_seconds,          # ?? ?? ???????? ?????? ??????? ?????? ?? ?? ???? ???????? ??????? ???
                 limit=kline_limit,
             )
 
@@ -73,7 +73,7 @@ def get_price_klines(ticker):
             if attempt < 3:
                 time.sleep(5)
             else:
-                raise    
+                raise 
 
 
 # Get latest klines

@@ -1,7 +1,7 @@
-from config_execution_api import session_private, session_public, limit_order_basis, get_position_variables
-from config_ws_connect import get_orderbook_info
-from helping_functions import round_quantity
-from func_calcultions import get_trade_details
+from Execution.config_execution_api import session_private, session_public, limit_order_basis, get_position_variables
+from Execution.config_ws_connect import get_orderbook_info
+from Execution.helping_functions import round_quantity
+from Execution.func_calcultions import get_trade_details
 from pybit.exceptions import InvalidRequestError
 
 

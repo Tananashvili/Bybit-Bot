@@ -1,4 +1,4 @@
-from config_execution_api import session_public
+from Execution.config_execution_api import session_public
 
 
 def get_orderbook_info(ticker):

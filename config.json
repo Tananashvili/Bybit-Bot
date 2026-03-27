@@ -1,9 +1,10 @@
 {
-    "ticker_1": "BELUSDT",
-    "ticker_2": "MERLUSDT",
-    "starting_zscore": 2.4,
+    "ticker_1": "ATHUSDT",
+    "ticker_2": "CVCUSDT",
+    "starting_zscore": -2.8481192818570333,
     "desired_profit": 40,
-    "stop_loss": 40,
-    "leverage": "10",
-    "open_positions": false
+    "stop_loss": 25,
+    "leverage": "15",
+    "c_leverage": "25.0",
+    "open_positions": true
 }

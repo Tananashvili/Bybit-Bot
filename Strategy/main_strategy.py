@@ -2,10 +2,10 @@ import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
-from func_get_symbols import get_tradeable_symbols
-from func_prices_json import store_price_history
-from func_cointegration import get_cointegrated_pairs
-from helping_functions import filter_data, pick_best_pair
+from Strategy.func_get_symbols import get_tradeable_symbols
+from Strategy.func_prices_json import store_price_history
+from Strategy.func_cointegration import get_cointegrated_pairs
+from Strategy.helping_functions import filter_data, pick_best_pair
 import json
 
 BAD_PAIRS = []
