@@ -1,45 +1,50 @@
-import warnings, json, asyncio
+import asyncio
+import json
+import time
+import warnings
 from datetime import datetime, timedelta
+from pathlib import Path
+
+from Execution.config_execution_api import load_runtime_config
+from Execution.main_execution import pick_pair
+from Strategy.func_cointegration import get_cointegrated_pairs
 from Strategy.func_get_symbols import get_tradeable_symbols
 from Strategy.func_prices_json import store_price_history
-from Strategy.func_cointegration import get_cointegrated_pairs
-from Strategy.helping_functions import send_telegram_message, filter_data, pick_best_pair
-from Execution.main_execution import pick_pair
+from Strategy.helping_functions import filter_data, pick_best_pair, send_telegram_message
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-BAD_PAIRS = []
-starting_time = datetime.utcnow()
-count = 0
+bad_pairs = []
+last_refresh_time = datetime.min
 
 while True:
+    runtime_config = load_runtime_config()
+    refresh_interval = timedelta(hours=float(runtime_config["pair_refresh_hours"]))
 
-    current_time = datetime.utcnow()
-    time_difference = current_time - starting_time
-    if time_difference >= timedelta(hours=2) or count == 0:
+    if datetime.utcnow() - last_refresh_time >= refresh_interval:
+        asyncio.run(send_telegram_message("Refreshing candidate pairs from mainnet data..."))
+        symbols = get_tradeable_symbols()
+        if symbols:
+            store_price_history(symbols)
 
-        asyncio.run(send_telegram_message("Getting Pairs..."))
-        sym_response = get_tradeable_symbols()
+        price_data = {}
+        price_file = Path("1_price_list.json")
+        if price_file.exists():
+            with price_file.open("r", encoding="utf-8") as json_file:
+                price_data = json.load(json_file)
 
-        if len(sym_response) > 0:
-            store_price_history(sym_response)
+        coint_pairs = get_cointegrated_pairs(price_data, bad_pairs) if price_data else None
+        if coint_pairs is not None:
+            filter_data(coint_pairs)
+            pick_best_pair()
 
-        with open("1_price_list.json") as json_file:
-            price_data = json.load(json_file)
-            if len(price_data) > 0:
-                coint_pairs = get_cointegrated_pairs(price_data, BAD_PAIRS)
+        bad_pairs = []
+        last_refresh_time = datetime.utcnow()
 
-        filter_data(coint_pairs)
-        pick_best_pair()
-        asyncio.run(send_telegram_message("Pairs filtered. Searching best one..."))
-
-        starting_time = datetime.utcnow()
-        count += 1
-    
-    out = pick_pair(BAD_PAIRS)
-    if out == 'restart':
-        starting_time = datetime.utcnow()
-        count = 0
+    result = pick_pair(bad_pairs)
+    if result:
+        bad_pairs.extend(result)
+        bad_pairs = list(dict.fromkeys(bad_pairs))
     else:
-        BAD_PAIRS.extend(out)
+        time.sleep(300)

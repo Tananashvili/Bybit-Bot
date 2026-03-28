@@ -1,10 +1,14 @@
 {
-    "ticker_1": "ATHUSDT",
-    "ticker_2": "CVCUSDT",
-    "starting_zscore": -2.8481192818570333,
-    "desired_profit": 40,
-    "stop_loss": 25,
-    "leverage": "15",
-    "c_leverage": "25.0",
-    "open_positions": true
+    "entry_zscore": 2.2,
+    "exit_zscore": 0.5,
+    "stop_zscore": 4.0,
+    "paper_balance": 10000.0,
+    "capital_per_trade_pct": 0.2,
+    "leverage": 3.0,
+    "fee_rate": 0.00055,
+    "slippage_bps": 2.0,
+    "max_holding_bars": 72,
+    "pair_refresh_hours": 4,
+    "backtest_top_pairs": 10,
+    "backtest_lookback_bars": 250
 }

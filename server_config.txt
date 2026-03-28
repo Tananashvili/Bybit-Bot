@@ -1,13 +1,20 @@
 host name: ec2-13-37-108-74.eu-west-3.compute.amazonaws.com
 
-start: nohup python test.py &
-stop: kill 48301
-check: ps aux | grep test.py
-	or
-ps aux | grep python | grep test.py
-
-
+paper trading on real mainnet data:
 1. cd Bybit-Bot
 2. source venv/bin/activate
-3. cd Execution
-4. nohup python test.py &
+3. nohup python main.py > paper_trading.out 2>&1 &
+
+historical backtest on real mainnet data:
+1. cd Bybit-Bot
+2. source venv/bin/activate
+3. python backtest.py
+
+run the backtest every day at 00:00 with cron:
+0 0 * * * cd /home/ubuntu/Bybit-Bot && . venv/bin/activate && python backtest.py >> backtest.log 2>&1
+
+check running paper process:
+ps aux | grep python | grep main.py
+
+stop paper process:
+kill <pid>

@@ -1,49 +1,20 @@
-from Strategy.config_strategy_api import session_public
 import math
-from dotenv import load_dotenv
 import os
-from telegram import Bot
+
 import pandas as pd
+from dotenv import load_dotenv
 from sklearn.preprocessing import MinMaxScaler
+from telegram import Bot
+
+from Strategy.config_strategy_api import (
+    entry_zscore,
+    max_half_life,
+    max_symbol_occurrences,
+    min_half_life,
+    min_zero_crossings,
+)
 
 
-def get_orderbook_info(ticker):
-    orderbook = session_public.get_orderbook(
-        category="linear",
-        symbol=ticker,
-        limit=25
-    )
-
-    return orderbook
-
-
-def get_trade_details(orderbook):
-
-    # Set calculation and output variables
-    mid_price = 0
-    bid_items_list = []
-
-    # Get prices, stop loss and quantity
-    if orderbook:
-
-        bid_items_list.append(orderbook['result']["b"])
-        # Calculate price, size, stop loss and average liquidity
-        if len(bid_items_list) > 0:
-
-            # Sort lists
-            bid_items_list.sort()
-            bid_items_list.reverse()
-            try:
-                nearest_bid = float(bid_items_list[0][0][0])
-                mid_price = nearest_bid # placing at Bid has high probability of not being cancelled, but may not fill
-            except IndexError:
-                mid_price = None
-
-    # Output results
-    return mid_price
-
-
-# Puts all close prices in a list
 def extract_close_prices(prices):
     close_prices = []
     for price_values in prices:
@@ -56,41 +27,68 @@ def extract_close_prices(prices):
 
 async def send_telegram_message(message):
     load_dotenv()
-    bot_token = os.getenv('bot_token')
-    chat_id = os.getenv('chat_id')
+    bot_token = os.getenv("bot_token")
+    chat_id = os.getenv("chat_id")
+    if not bot_token or not chat_id:
+        return
+
     bot = Bot(token=bot_token)
     await bot.send_message(chat_id=chat_id, text=message)
 
 
-def filter_data(coint_pairs):
+def filter_data(coint_pairs, output_path="2_cointegrated_pairs.xlsx"):
+    if coint_pairs.empty:
+        coint_pairs.to_excel(output_path, index=False)
+        return
 
-    df = coint_pairs
+    df = coint_pairs.copy()
+    df = df[df["abs"] >= entry_zscore]
+    df = df[df["zero_crossings"] >= min_zero_crossings]
+    df = df[df["half_life"].between(min_half_life, max_half_life)]
+    df = df[df["p_value"] <= 0.05]
 
-    df = df[df['abs'] >= 2.1]
-    df = df[df['zero_crossings'] >= 27]
+    coin_counts = pd.concat([df["sym_1"], df["sym_2"]]).value_counts()
+    coins_to_remove = coin_counts[coin_counts > max_symbol_occurrences].index
 
-    coin_counts = pd.concat([df['sym_1'], df['sym_2']]).value_counts()
-    coins_to_remove = coin_counts[coin_counts > 5].index
-    
-    df = df[~df['sym_1'].isin(coins_to_remove) & ~df['sym_2'].isin(coins_to_remove)]
-    df = df[(df['sym_1'] != 'USDCUSDT') & (df['sym_2'] != 'USDCUSDT')]
-    df = df.sort_values(by=['zero_crossings', 'abs'], ascending=[False, False])
+    df = df[~df["sym_1"].isin(coins_to_remove) & ~df["sym_2"].isin(coins_to_remove)]
+    df = df[(df["sym_1"] != "USDCUSDT") & (df["sym_2"] != "USDCUSDT")]
+    df = df.sort_values(
+        by=["p_value", "half_life", "zero_crossings", "abs"],
+        ascending=[True, True, False, False],
+    )
 
-    df.to_excel('2_cointegrated_pairs.xlsx', index=False)
+    df.to_excel(output_path, index=False)
 
 
-def pick_best_pair():  
+def pick_best_pair(input_path="2_cointegrated_pairs.xlsx", output_path="2_cointegrated_pairs.xlsx"):
+    df = pd.read_excel(input_path)
+    if df.empty:
+        df.to_excel(output_path, index=False)
+        return
 
-    df = pd.read_excel('2_cointegrated_pairs.xlsx')
+    scored_df = df.copy()
+    scored_df["inverse_p_value"] = 1 / scored_df["p_value"].clip(lower=1e-6)
+    scored_df["inverse_half_life"] = 1 / scored_df["half_life"].clip(lower=1e-6)
 
-    columns = ['abs', 'zero_crossings']
-    weights = {'abs': 0.45, 'zero_crossings': 0.55}
+    columns = ["abs", "zero_crossings", "inverse_p_value", "inverse_half_life"]
+    weights = {
+        "abs": 0.35,
+        "zero_crossings": 0.20,
+        "inverse_p_value": 0.25,
+        "inverse_half_life": 0.20,
+    }
 
     scaler = MinMaxScaler()
-    df_normalized = pd.DataFrame(scaler.fit_transform(df[columns]), columns=columns)
+    normalized = pd.DataFrame(scaler.fit_transform(scored_df[columns]), columns=columns)
 
-    df['score'] = (df_normalized['abs'] * weights['abs'] +
-                df_normalized['zero_crossings'] * weights['zero_crossings'])
+    scored_df["score"] = (
+        normalized["abs"] * weights["abs"]
+        + normalized["zero_crossings"] * weights["zero_crossings"]
+        + normalized["inverse_p_value"] * weights["inverse_p_value"]
+        + normalized["inverse_half_life"] * weights["inverse_half_life"]
+    )
 
-    df_sorted = df.sort_values(by='score', ascending=False)
-    df_sorted.to_excel('2_cointegrated_pairs.xlsx', index=False)
+    scored_df = scored_df.sort_values(by="score", ascending=False).drop(
+        columns=["inverse_p_value", "inverse_half_life"]
+    )
+    scored_df.to_excel(output_path, index=False)
