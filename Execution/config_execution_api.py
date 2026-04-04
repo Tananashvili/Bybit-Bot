@@ -38,16 +38,31 @@ DEFAULT_CONFIG = {
     "entry_zscore": default_entry_zscore,
     "exit_zscore": default_exit_zscore,
     "stop_zscore": default_stop_zscore,
-    "paper_balance": 10000.0,
-    "capital_per_trade_pct": 0.20,
+    "paper_balance": 250.0,
+    "max_open_positions": 3,
+    "cash_reserve_pct": 0.01,
     "leverage": 3.0,
-    "fee_rate": 0.00055,
-    "slippage_bps": 2.0,
+    "open_fee_rate": 0.0002,
+    "close_fee_rate": 0.00055,
+    "open_slippage_bps": 0.0,
+    "close_slippage_bps": 2.0,
     "max_holding_bars": 72,
     "pair_refresh_hours": 4,
+    "portfolio_update_interval_minutes": 60,
+    "loop_sleep_seconds": 60,
     "backtest_top_pairs": 10,
     "backtest_lookback_bars": train_window,
 }
+
+
+def build_default_paper_state(runtime_config):
+    return {
+        "cash_balance": float(runtime_config["paper_balance"]),
+        "active_positions": [],
+        "last_portfolio_update_sent_at": None,
+        "paper_balance_base": float(runtime_config["paper_balance"]),
+    }
+
 
 session_public = HTTP(testnet=testnet)
 session_private = (
@@ -82,15 +97,35 @@ def save_runtime_config(config):
 
 
 def load_paper_state():
+    runtime_config = load_runtime_config()
+    default_state = build_default_paper_state(runtime_config)
+
     if not PAPER_STATE_PATH.exists():
-        return None
+        return default_state
 
     with PAPER_STATE_PATH.open("r", encoding="utf-8") as file:
         state = json.load(file)
-    return state or None
+    if not state:
+        return default_state
+
+    state.setdefault("active_positions", [])
+    state.setdefault("last_portfolio_update_sent_at", None)
+    state.setdefault("paper_balance_base", float(runtime_config["paper_balance"]))
+    state.setdefault("cash_balance", float(state["paper_balance_base"]))
+
+    # If the wallet config changed and there are no open trades, start a fresh paper wallet.
+    if (
+        not state["active_positions"]
+        and float(state["paper_balance_base"]) != float(runtime_config["paper_balance"])
+    ):
+        return default_state
+
+    return state
 
 
 def save_paper_state(state):
+    runtime_config = load_runtime_config()
+    state.setdefault("paper_balance_base", float(runtime_config["paper_balance"]))
     PAPER_STATE_PATH.write_text(
         json.dumps(state, indent=4),
         encoding="utf-8",

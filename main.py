@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from Execution.config_execution_api import load_runtime_config
-from Execution.main_execution import pick_pair
+from Execution.main_execution import run_portfolio_cycle
 from Strategy.func_cointegration import get_cointegrated_pairs
 from Strategy.func_get_symbols import get_tradeable_symbols
 from Strategy.func_prices_json import store_price_history
@@ -42,9 +42,6 @@ while True:
         bad_pairs = []
         last_refresh_time = datetime.utcnow()
 
-    result = pick_pair(bad_pairs)
-    if result:
-        bad_pairs.extend(result)
-        bad_pairs = list(dict.fromkeys(bad_pairs))
-    else:
-        time.sleep(300)
+    bad_pairs = run_portfolio_cycle(bad_pairs)
+    bad_pairs = list(dict.fromkeys(bad_pairs))
+    time.sleep(int(runtime_config["loop_sleep_seconds"]))
