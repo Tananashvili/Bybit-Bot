@@ -126,6 +126,28 @@ def get_allocation_per_new_position(state, runtime_config):
     return max(allocatable_cash / open_slots, 0.0)
 
 
+def update_profit_lock(position, runtime_config, evaluation):
+    peak_return_pct = max(
+        float(position.get("peak_return_pct", evaluation["return_pct"])),
+        float(evaluation["return_pct"]),
+    )
+    position["peak_return_pct"] = peak_return_pct
+
+    activation_pct = float(runtime_config["profit_lock_activation_pct"])
+    keep_ratio = float(runtime_config["profit_lock_keep_ratio"])
+    min_return_pct = float(runtime_config["profit_lock_min_return_pct"])
+
+    if peak_return_pct >= activation_pct:
+        position["profit_lock_active"] = True
+        position["profit_lock_floor_pct"] = max(
+            min_return_pct,
+            peak_return_pct * keep_ratio,
+        )
+    else:
+        position["profit_lock_active"] = False
+        position["profit_lock_floor_pct"] = 0.0
+
+
 def build_position_from_candidate(candidate, runtime_config, state):
     live_metrics = candidate["live_metrics"]
     candidate_row = candidate["row"]
@@ -205,6 +227,9 @@ def build_position_from_candidate(candidate, runtime_config, state):
         "reserved_capital": float(reserved_capital),
         "open_fee": float(open_fee),
         "open_notional": float(notional_1 + notional_2),
+        "peak_return_pct": 0.0,
+        "profit_lock_active": False,
+        "profit_lock_floor_pct": 0.0,
     }
 
 
@@ -292,6 +317,11 @@ def should_close_position(position, runtime_config, evaluation):
         return "model_breakdown_half_life"
     if current_zscore <= float(runtime_config["exit_zscore"]):
         return "mean_reversion"
+    if (
+        position.get("profit_lock_active")
+        and evaluation["return_pct"] <= float(position.get("profit_lock_floor_pct", 0.0))
+    ):
+        return "profit_lock_stop"
     if current_zscore >= float(runtime_config["stop_zscore"]):
         return "zscore_stop"
     if evaluation["holding_bars"] >= int(runtime_config["max_holding_bars"]):
@@ -344,6 +374,11 @@ def close_position(position, evaluation, exit_reason, state):
             f" | p={evaluation['model_p_value']:.4f} "
             f"| hl={evaluation['model_half_life']:.2f}"
         )
+    elif exit_reason == "profit_lock_stop":
+        message += (
+            f" | peak={position.get('peak_return_pct', 0.0):.2f}% "
+            f"| floor={position.get('profit_lock_floor_pct', 0.0):.2f}%"
+        )
     asyncio.run(send_telegram_message(message))
 
 
@@ -356,6 +391,7 @@ def sync_active_positions(state, runtime_config, bad_pairs):
             remaining_positions.append(position)
             continue
 
+        update_profit_lock(position, runtime_config, evaluation)
         exit_reason = should_close_position(position, runtime_config, evaluation)
         if not exit_reason:
             remaining_positions.append(position)
@@ -480,6 +516,12 @@ def maybe_send_hourly_portfolio_update(state, runtime_config):
             continue
 
         live_balance += evaluation["live_value"]
+        profit_lock_suffix = ""
+        if position.get("profit_lock_active"):
+            profit_lock_suffix = (
+                f" | peak={position.get('peak_return_pct', 0.0):.2f}%"
+                f" | floor={position.get('profit_lock_floor_pct', 0.0):.2f}%"
+            )
         lines.append(
             (
                 f"{position['ticker_1']}/{position['ticker_2']} | "
@@ -487,6 +529,7 @@ def maybe_send_hourly_portfolio_update(state, runtime_config):
                 f"z={evaluation['current_zscore']:.2f} | "
                 f"net={evaluation['net_pnl']:.2f} | "
                 f"roe={evaluation['return_pct']:.2f}%"
+                f"{profit_lock_suffix}"
             )
         )
 

@@ -67,6 +67,28 @@ def get_allocation_per_new_position(state, runtime_config):
     return max(allocatable_cash / open_slots, 0.0)
 
 
+def update_profit_lock(position, runtime_config, evaluation):
+    peak_return_pct = max(
+        float(position.get("peak_return_pct", evaluation["return_pct"])),
+        float(evaluation["return_pct"]),
+    )
+    position["peak_return_pct"] = peak_return_pct
+
+    activation_pct = float(runtime_config["profit_lock_activation_pct"])
+    keep_ratio = float(runtime_config["profit_lock_keep_ratio"])
+    min_return_pct = float(runtime_config["profit_lock_min_return_pct"])
+
+    if peak_return_pct >= activation_pct:
+        position["profit_lock_active"] = True
+        position["profit_lock_floor_pct"] = max(
+            min_return_pct,
+            peak_return_pct * keep_ratio,
+        )
+    else:
+        position["profit_lock_active"] = False
+        position["profit_lock_floor_pct"] = 0.0
+
+
 def build_pair_history(pair_row, lookback_bars):
     frame_1 = get_kline_frame(pair_row["sym_1"])
     frame_2 = get_kline_frame(pair_row["sym_2"])
@@ -207,6 +229,9 @@ def build_backtest_position(snapshot, runtime_config, state, instrument_cache):
         "entry_price_2": float(entry_price_2),
         "reserved_capital": float(reserved_capital),
         "open_fee": float(open_fee),
+        "peak_return_pct": 0.0,
+        "profit_lock_active": False,
+        "profit_lock_floor_pct": 0.0,
     }
 
 
@@ -273,6 +298,11 @@ def should_close_position(runtime_config, evaluation):
         return "model_breakdown"
     if current_zscore <= float(runtime_config["exit_zscore"]):
         return "mean_reversion"
+    if (
+        evaluation["profit_lock_active"]
+        and evaluation["return_pct"] <= evaluation["profit_lock_floor_pct"]
+    ):
+        return "profit_lock_stop"
     if current_zscore >= float(runtime_config["stop_zscore"]):
         return "zscore_stop"
     if evaluation["holding_bars"] >= int(runtime_config["max_holding_bars"]):
@@ -312,6 +342,8 @@ def close_backtest_position(position, evaluation, exit_reason, state):
         "fees_paid": evaluation["fees_paid"],
         "net_pnl": evaluation["net_pnl"],
         "return_pct": evaluation["return_pct"],
+        "peak_return_pct": position.get("peak_return_pct", 0.0),
+        "profit_lock_floor_pct": position.get("profit_lock_floor_pct", 0.0),
     }
 
 
@@ -327,6 +359,9 @@ def sync_active_positions(state, runtime_config, pair_histories, current_timesta
             continue
 
         evaluation = evaluate_backtest_position(position, snapshot, runtime_config)
+        update_profit_lock(position, runtime_config, evaluation)
+        evaluation["profit_lock_active"] = bool(position.get("profit_lock_active"))
+        evaluation["profit_lock_floor_pct"] = float(position.get("profit_lock_floor_pct", 0.0))
         exit_reason = should_close_position(runtime_config, evaluation)
         if not exit_reason:
             remaining_positions.append(position)
@@ -400,6 +435,7 @@ def close_remaining_positions(state, runtime_config, pair_histories, lookback_ba
             continue
 
         evaluation = evaluate_backtest_position(position, snapshot, runtime_config)
+        update_profit_lock(position, runtime_config, evaluation)
         trades.append(close_backtest_position(position, evaluation, "end_of_test", state))
 
     state["active_positions"] = []
