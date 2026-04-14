@@ -19,7 +19,17 @@ from Execution.func_execution_calls import get_instrument_meta
 from Execution.func_price_calls import get_ticker_snapshot
 from Execution.helping_functions import round_quantity
 from Execution.zscore_updates import get_latest_pair_metrics
-from Strategy.config_strategy_api import max_half_life, min_half_life, top_pairs_to_scan
+from Strategy.config_strategy_api import (
+    max_abs_hedge_ratio,
+    max_entry_zscore,
+    max_half_life,
+    max_spread_bps,
+    min_abs_hedge_ratio,
+    min_half_life,
+    min_turnover_24h,
+    top_pairs_to_scan,
+)
+from Strategy.helping_functions import calculate_entry_band_score
 
 
 async def send_telegram_message(message):
@@ -61,6 +71,26 @@ def get_execution_price(ticker, direction, action, slippage_bps):
     if raw_price is None:
         return None
     return apply_slippage(raw_price, direction, action, slippage_bps)
+
+
+def get_symbol_quality(ticker):
+    snapshot = get_ticker_snapshot(ticker)
+    try:
+        turnover_24h = float(snapshot["turnover24h"])
+        bid_price = float(snapshot["bid1Price"])
+        ask_price = float(snapshot["ask1Price"])
+        mark_price = float(snapshot["markPrice"])
+    except (KeyError, TypeError, ValueError):
+        return None
+
+    if min(bid_price, ask_price, mark_price) <= 0:
+        return None
+
+    spread_bps = ((ask_price - bid_price) / mark_price) * 10000
+    return {
+        "turnover24h": turnover_24h,
+        "spread_bps": spread_bps,
+    }
 
 
 def calculate_leg_pnl(direction, quantity, entry_price, exit_price):
@@ -151,16 +181,23 @@ def update_profit_lock(position, runtime_config, evaluation):
 def build_position_from_candidate(candidate, runtime_config, state):
     live_metrics = candidate["live_metrics"]
     candidate_row = candidate["row"]
+    min_entry_zscore = float(runtime_config["entry_zscore"])
 
     if live_metrics["latest_zscore"] is None:
+        return None
+    if not min_entry_zscore <= abs(float(live_metrics["latest_zscore"])) <= max_entry_zscore:
         return None
 
     reserved_capital = get_allocation_per_new_position(state, runtime_config)
     if reserved_capital <= 0:
         return None
 
-    hedge_ratio = abs(float(live_metrics["hedge_ratio"]))
-    if hedge_ratio <= 0:
+    raw_hedge_ratio = float(live_metrics["hedge_ratio"])
+    if raw_hedge_ratio <= 0:
+        return None
+
+    hedge_ratio = abs(raw_hedge_ratio)
+    if not (min_abs_hedge_ratio <= hedge_ratio <= max_abs_hedge_ratio):
         return None
 
     direction_1 = "Short" if live_metrics["latest_zscore"] > 0 else "Long"
@@ -442,10 +479,27 @@ def build_candidate_list(state, runtime_config, bad_pairs):
             continue
         if not (min_half_life <= model_metrics["half_life"] <= max_half_life):
             continue
-        if abs(live_metrics["latest_zscore"]) < float(runtime_config["entry_zscore"]):
+        abs_live_zscore = abs(float(live_metrics["latest_zscore"]))
+        if not float(runtime_config["entry_zscore"]) <= abs_live_zscore <= max_entry_zscore:
+            continue
+        if float(model_metrics["hedge_ratio"]) <= 0:
+            continue
+        if not (min_abs_hedge_ratio <= abs(float(model_metrics["hedge_ratio"])) <= max_abs_hedge_ratio):
             continue
 
-        candidate_score = abs(live_metrics["latest_zscore"]) + float(row_data.get("score", 0))
+        quality_1 = get_symbol_quality(row_data["sym_1"])
+        quality_2 = get_symbol_quality(row_data["sym_2"])
+        if quality_1 is None or quality_2 is None:
+            continue
+        if min(quality_1["turnover24h"], quality_2["turnover24h"]) < min_turnover_24h:
+            continue
+        if max(quality_1["spread_bps"], quality_2["spread_bps"]) > max_spread_bps:
+            continue
+
+        candidate_score = (
+            calculate_entry_band_score(abs_live_zscore)
+            + float(row_data.get("score", 0))
+        )
         candidates.append(
             {
                 "score": candidate_score,

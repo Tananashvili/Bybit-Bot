@@ -9,7 +9,10 @@ from Execution.config_execution_api import BACKTEST_TRADES_PATH, load_runtime_co
 from Execution.func_execution_calls import get_instrument_meta
 from Execution.helping_functions import round_quantity
 from Strategy.config_strategy_api import (
+    max_abs_hedge_ratio,
+    max_entry_zscore,
     max_half_life,
+    min_abs_hedge_ratio,
     min_half_life,
     top_pairs_to_scan,
     z_score_window,
@@ -18,7 +21,7 @@ from Strategy.func_cointegration import get_cointegrated_pairs
 from Strategy.func_get_symbols import get_tradeable_symbols
 from Strategy.func_price_klines import get_price_klines
 from Strategy.func_prices_json import store_price_history
-from Strategy.helping_functions import filter_data, pick_best_pair
+from Strategy.helping_functions import calculate_entry_band_score, filter_data, pick_best_pair
 from pair_stats import calculate_pair_metrics
 
 BACKTEST_PRICE_LIST_PATH = Path("backtest_price_list.json")
@@ -156,13 +159,19 @@ def build_backtest_position(snapshot, runtime_config, state, instrument_cache):
     metrics = snapshot["metrics"]
     if metrics["latest_zscore"] is None:
         return None
+    if not float(runtime_config["entry_zscore"]) <= abs(float(metrics["latest_zscore"])) <= max_entry_zscore:
+        return None
 
     reserved_capital = get_allocation_per_new_position(state, runtime_config)
     if reserved_capital <= 0:
         return None
 
-    hedge_ratio = abs(float(metrics["hedge_ratio"]))
-    if hedge_ratio <= 0:
+    raw_hedge_ratio = float(metrics["hedge_ratio"])
+    if raw_hedge_ratio <= 0:
+        return None
+
+    hedge_ratio = abs(raw_hedge_ratio)
+    if not (min_abs_hedge_ratio <= hedge_ratio <= max_abs_hedge_ratio):
         return None
 
     constraints_1 = get_instrument_constraints(snapshot["pair_row"]["sym_1"], instrument_cache)
@@ -391,10 +400,18 @@ def build_candidate_list(state, runtime_config, pair_histories, current_timestam
             continue
         if not (min_half_life <= metrics["half_life"] <= max_half_life):
             continue
-        if abs(metrics["latest_zscore"]) < float(runtime_config["entry_zscore"]):
+        abs_zscore = abs(float(metrics["latest_zscore"]))
+        if not float(runtime_config["entry_zscore"]) <= abs_zscore <= max_entry_zscore:
+            continue
+        if float(metrics["hedge_ratio"]) <= 0:
+            continue
+        if not (min_abs_hedge_ratio <= abs(float(metrics["hedge_ratio"])) <= max_abs_hedge_ratio):
             continue
 
-        snapshot["candidate_score"] = abs(metrics["latest_zscore"]) + float(snapshot["score"])
+        snapshot["candidate_score"] = (
+            calculate_entry_band_score(abs_zscore)
+            + float(snapshot["score"])
+        )
         candidates.append(snapshot)
 
     candidates.sort(key=lambda item: item["candidate_score"], reverse=True)

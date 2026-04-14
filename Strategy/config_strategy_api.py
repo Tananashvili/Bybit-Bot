@@ -25,13 +25,17 @@ train_window = 250
 
 # Signal and filtering thresholds
 entry_zscore = 2.2
+max_entry_zscore = 3.0
 exit_zscore = 0.5
 stop_zscore = 4.0
 min_zero_crossings = 12
 min_half_life = 2
 max_half_life = 72
-min_turnover_24h = 5_000_000
-max_spread_bps = 15
+min_turnover_24h = 10_000_000
+max_spread_bps = 12
+min_listing_days = 120
+min_abs_hedge_ratio = 0.005
+max_abs_hedge_ratio = 500
 max_symbol_occurrences = 4
 top_pairs_to_scan = 25
 

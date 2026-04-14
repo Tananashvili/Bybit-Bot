@@ -2,7 +2,12 @@ import math
 
 import pandas as pd
 
-from Strategy.config_strategy_api import z_score_window
+from Strategy.config_strategy_api import (
+    max_abs_hedge_ratio,
+    max_entry_zscore,
+    min_abs_hedge_ratio,
+    z_score_window,
+)
 from pair_stats import build_spread, calculate_pair_metrics, calculate_zscore_series
 
 
@@ -74,6 +79,12 @@ def get_cointegrated_pairs(prices, bad_pairs):
             metrics = calculate_pair_metrics(series_1, series_2, z_score_window)
 
             if metrics["coint_flag"] != 1 or metrics["latest_zscore"] is None:
+                continue
+            if abs(metrics["latest_zscore"]) > max_entry_zscore:
+                continue
+            if metrics["hedge_ratio"] <= 0:
+                continue
+            if not (min_abs_hedge_ratio <= abs(metrics["hedge_ratio"]) <= max_abs_hedge_ratio):
                 continue
 
             included_list.add(unique_pair)

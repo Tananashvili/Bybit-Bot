@@ -1,5 +1,8 @@
+from datetime import datetime, timezone
+
 from Strategy.config_strategy_api import (
     max_spread_bps,
+    min_listing_days,
     min_turnover_24h,
     session_public,
 )
@@ -37,6 +40,7 @@ def get_ticker_snapshot_map():
 def get_tradeable_symbols():
     tickers_by_symbol = get_ticker_snapshot_map()
     instruments = get_all_linear_instruments()
+    now_utc = datetime.now(timezone.utc)
 
     tradeable = []
     for symbol in instruments:
@@ -55,6 +59,22 @@ def get_tradeable_symbols():
         except (KeyError, TypeError, ValueError):
             continue
 
+        launch_time_raw = symbol.get("launchTime")
+        if launch_time_raw:
+            try:
+                launch_time = datetime.fromtimestamp(
+                    int(launch_time_raw) / 1000,
+                    tz=timezone.utc,
+                )
+                listing_age_days = (now_utc - launch_time).total_seconds() / 86400
+            except (TypeError, ValueError, OSError):
+                listing_age_days = None
+        else:
+            listing_age_days = None
+
+        if listing_age_days is not None and listing_age_days < min_listing_days:
+            continue
+
         if turnover_24h < min_turnover_24h or min(bid_price, ask_price, mark_price) <= 0:
             continue
 
@@ -68,6 +88,7 @@ def get_tradeable_symbols():
                 "turnover24h": turnover_24h,
                 "spread_bps": spread_bps,
                 "markPrice": mark_price,
+                "listing_age_days": listing_age_days,
             }
         )
 
