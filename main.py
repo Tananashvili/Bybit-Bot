@@ -1,6 +1,7 @@
 import asyncio
 import json
 import time
+import traceback
 import warnings
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -20,28 +21,37 @@ last_refresh_time = datetime.min
 
 while True:
     runtime_config = load_runtime_config()
-    refresh_interval = timedelta(hours=float(runtime_config["pair_refresh_hours"]))
+    sleep_seconds = int(runtime_config["loop_sleep_seconds"])
 
-    if datetime.utcnow() - last_refresh_time >= refresh_interval:
-        asyncio.run(send_telegram_message("Refreshing candidate pairs from mainnet data..."))
-        symbols = get_tradeable_symbols()
-        if symbols:
-            store_price_history(symbols)
+    try:
+        refresh_interval = timedelta(hours=float(runtime_config["pair_refresh_hours"]))
 
-        price_data = {}
-        price_file = Path("1_price_list.json")
-        if price_file.exists():
-            with price_file.open("r", encoding="utf-8") as json_file:
-                price_data = json.load(json_file)
+        if datetime.utcnow() - last_refresh_time >= refresh_interval:
+            asyncio.run(send_telegram_message("Refreshing candidate pairs from mainnet data..."))
+            symbols = get_tradeable_symbols()
+            if symbols:
+                store_price_history(symbols)
 
-        coint_pairs = get_cointegrated_pairs(price_data, bad_pairs) if price_data else None
-        if coint_pairs is not None:
-            filter_data(coint_pairs)
-            pick_best_pair()
+            price_data = {}
+            price_file = Path("1_price_list.json")
+            if price_file.exists():
+                with price_file.open("r", encoding="utf-8") as json_file:
+                    price_data = json.load(json_file)
 
-        bad_pairs = []
-        last_refresh_time = datetime.utcnow()
+            coint_pairs = get_cointegrated_pairs(price_data, bad_pairs) if price_data else None
+            if coint_pairs is not None:
+                filter_data(coint_pairs)
+                pick_best_pair()
 
-    bad_pairs = run_portfolio_cycle(bad_pairs)
-    bad_pairs = list(dict.fromkeys(bad_pairs))
-    time.sleep(int(runtime_config["loop_sleep_seconds"]))
+            bad_pairs = []
+            last_refresh_time = datetime.utcnow()
+
+        bad_pairs = run_portfolio_cycle(bad_pairs)
+        bad_pairs = list(dict.fromkeys(bad_pairs))
+    except Exception as exc:
+        print(f"[error] main loop exception: {exc}")
+        traceback.print_exc()
+        time.sleep(min(max(sleep_seconds, 5), 60))
+        continue
+
+    time.sleep(sleep_seconds)

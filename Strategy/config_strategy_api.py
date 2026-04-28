@@ -37,7 +37,7 @@ min_listing_days = 120
 min_abs_hedge_ratio = 0.005
 max_abs_hedge_ratio = 500
 max_symbol_occurrences = 4
-top_pairs_to_scan = 25
+top_pairs_to_scan = 150
 
 # Selected API credentials
 api_key = api_key_testnet if mode == "testnet" else api_key_mainnet

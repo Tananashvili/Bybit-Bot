@@ -38,8 +38,8 @@ DEFAULT_CONFIG = {
     "entry_zscore": default_entry_zscore,
     "exit_zscore": default_exit_zscore,
     "stop_zscore": default_stop_zscore,
-    "paper_balance": 250.0,
-    "max_open_positions": 3,
+    "paper_balance": 5000.0,
+    "max_open_positions": 50,
     "cash_reserve_pct": 0.01,
     "leverage": 3.0,
     "open_fee_rate": 0.0002,
@@ -51,9 +51,9 @@ DEFAULT_CONFIG = {
     "profit_lock_keep_ratio": 0.5,
     "max_holding_bars": 72,
     "pair_refresh_hours": 4,
-    "portfolio_update_interval_minutes": 60,
+    "portfolio_update_interval_minutes": 360,
     "loop_sleep_seconds": 60,
-    "backtest_top_pairs": 10,
+    "backtest_top_pairs": 50,
     "backtest_lookback_bars": train_window,
 }
 
@@ -64,6 +64,7 @@ def build_default_paper_state(runtime_config):
         "active_positions": [],
         "last_portfolio_update_sent_at": None,
         "paper_balance_base": float(runtime_config["paper_balance"]),
+        "pending_events": [],
     }
 
 
@@ -115,6 +116,7 @@ def load_paper_state():
     state.setdefault("last_portfolio_update_sent_at", None)
     state.setdefault("paper_balance_base", float(runtime_config["paper_balance"]))
     state.setdefault("cash_balance", float(state["paper_balance_base"]))
+    state.setdefault("pending_events", [])
 
     # If the wallet config changed and there are no open trades, start a fresh paper wallet.
     if (
@@ -129,6 +131,7 @@ def load_paper_state():
 def save_paper_state(state):
     runtime_config = load_runtime_config()
     state.setdefault("paper_balance_base", float(runtime_config["paper_balance"]))
+    state.setdefault("pending_events", [])
     PAPER_STATE_PATH.write_text(
         json.dumps(state, indent=4),
         encoding="utf-8",

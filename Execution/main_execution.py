@@ -55,11 +55,18 @@ def get_raw_book_price(ticker, direction, action):
         # Simulate passive limit orders: buy on the bid, sell on the ask.
         return bid_price if direction == "Long" else ask_price
 
+    if action == "close_limit":
+        # Simulate passive limit exits: sell longs on the ask, buy shorts on the bid.
+        return ask_price if direction == "Long" else bid_price
+
     # Simulate exit at the immediately executable side.
     return bid_price if direction == "Long" else ask_price
 
 
 def apply_slippage(price, direction, action, slippage_bps):
+    if action == "close_limit":
+        return price
+
     slippage_multiplier = 1 + (slippage_bps / 10000)
     if (direction == "Long" and action == "open") or (direction == "Short" and action == "close"):
         return price * slippage_multiplier
@@ -154,6 +161,18 @@ def get_allocation_per_new_position(state, runtime_config):
 
     allocatable_cash = float(state["cash_balance"]) * (1 - float(runtime_config["cash_reserve_pct"]))
     return max(allocatable_cash / open_slots, 0.0)
+
+
+def add_pending_event(state, event_type, message):
+    pending_events = state.setdefault("pending_events", [])
+    pending_events.append(
+        {
+            "time": datetime.utcnow().isoformat(),
+            "type": event_type,
+            "message": message,
+        }
+    )
+    state["pending_events"] = pending_events[-200:]
 
 
 def update_profit_lock(position, runtime_config, evaluation):
@@ -346,6 +365,61 @@ def evaluate_position(position, runtime_config):
     }
 
 
+def build_exit_evaluation(position, runtime_config, exit_reason):
+    close_action = "close_limit" if exit_reason == "profit_lock_stop" else "close"
+    close_fee_rate = (
+        float(runtime_config["open_fee_rate"])
+        if exit_reason == "profit_lock_stop"
+        else float(runtime_config["close_fee_rate"])
+    )
+
+    exit_price_1 = get_execution_price(
+        position["ticker_1"],
+        position["direction_1"],
+        close_action,
+        float(runtime_config["close_slippage_bps"]),
+    )
+    exit_price_2 = get_execution_price(
+        position["ticker_2"],
+        position["direction_2"],
+        close_action,
+        float(runtime_config["close_slippage_bps"]),
+    )
+    if exit_price_1 is None or exit_price_2 is None:
+        return None
+
+    gross_pnl = calculate_leg_pnl(
+        position["direction_1"],
+        position["quantity_1"],
+        position["entry_price_1"],
+        exit_price_1,
+    ) + calculate_leg_pnl(
+        position["direction_2"],
+        position["quantity_2"],
+        position["entry_price_2"],
+        exit_price_2,
+    )
+
+    exit_notional = (
+        position["quantity_1"] * exit_price_1
+        + position["quantity_2"] * exit_price_2
+    )
+    close_fee = exit_notional * close_fee_rate
+    fees_paid = position["open_fee"] + close_fee
+    net_pnl = gross_pnl - fees_paid
+    return_pct = (net_pnl / position["reserved_capital"]) * 100 if position["reserved_capital"] else 0
+
+    return {
+        "exit_price_1": exit_price_1,
+        "exit_price_2": exit_price_2,
+        "gross_pnl": gross_pnl,
+        "close_fee": close_fee,
+        "fees_paid": fees_paid,
+        "net_pnl": net_pnl,
+        "return_pct": return_pct,
+    }
+
+
 def should_close_position(position, runtime_config, evaluation):
     current_zscore = abs(evaluation["current_zscore"])
     if evaluation["model_coint_flag"] != 1:
@@ -366,7 +440,11 @@ def should_close_position(position, runtime_config, evaluation):
     return None
 
 
-def close_position(position, evaluation, exit_reason, state):
+def close_position(position, evaluation, exit_reason, state, runtime_config):
+    exit_override = build_exit_evaluation(position, runtime_config, exit_reason)
+    if exit_override is not None:
+        evaluation = {**evaluation, **exit_override}
+
     state["cash_balance"] += (
         position["reserved_capital"]
         + evaluation["gross_pnl"]
@@ -416,7 +494,7 @@ def close_position(position, evaluation, exit_reason, state):
             f" | peak={position.get('peak_return_pct', 0.0):.2f}% "
             f"| floor={position.get('profit_lock_floor_pct', 0.0):.2f}%"
         )
-    asyncio.run(send_telegram_message(message))
+    add_pending_event(state, "closed", message)
 
 
 def sync_active_positions(state, runtime_config, bad_pairs):
@@ -434,7 +512,7 @@ def sync_active_positions(state, runtime_config, bad_pairs):
             remaining_positions.append(position)
             continue
 
-        close_position(position, evaluation, exit_reason, state)
+        close_position(position, evaluation, exit_reason, state, runtime_config)
         if exit_reason != "mean_reversion" or evaluation["net_pnl"] <= 0:
             bad_pairs.extend([position["ticker_1"], position["ticker_2"]])
 
@@ -528,16 +606,16 @@ def open_new_positions(state, runtime_config, bad_pairs):
             state["active_positions"].append(position)
             position_opened = True
 
-            asyncio.run(
-                send_telegram_message(
-                    (
-                        f"Paper trade opened: {position['ticker_1']} / {position['ticker_2']} | "
-                        f"{position['direction_1']} / {position['direction_2']} | "
-                        f"z={position['entry_zscore']:.2f} | "
-                        f"reserved={position['reserved_capital']:.2f} | "
-                        f"cash_left={state['cash_balance']:.2f}"
-                    )
-                )
+            add_pending_event(
+                state,
+                "opened",
+                (
+                    f"Paper trade opened: {position['ticker_1']} / {position['ticker_2']} | "
+                    f"{position['direction_1']} / {position['direction_2']} | "
+                    f"z={position['entry_zscore']:.2f} | "
+                    f"reserved={position['reserved_capital']:.2f} | "
+                    f"cash_left={state['cash_balance']:.2f}"
+                ),
             )
             break
 
@@ -587,9 +665,20 @@ def maybe_send_hourly_portfolio_update(state, runtime_config):
             )
         )
 
+    pending_events = state.get("pending_events", [])
+    if pending_events:
+        opened_count = sum(1 for event in pending_events if event.get("type") == "opened")
+        closed_count = sum(1 for event in pending_events if event.get("type") == "closed")
+        lines.append(
+            f"Last {int(runtime_config['portfolio_update_interval_minutes']) // 60}h events: opened={opened_count}, closed={closed_count}"
+        )
+        for event in pending_events[-20:]:
+            lines.append(f"{event.get('time', '')} | {event.get('message', '')}")
+
     lines.insert(1, f"Live balance: {live_balance:.2f} USDT")
     asyncio.run(send_telegram_message("\n".join(lines)))
     state["last_portfolio_update_sent_at"] = now.isoformat()
+    state["pending_events"] = []
 
 
 def run_portfolio_cycle(bad_pairs):

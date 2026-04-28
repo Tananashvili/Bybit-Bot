@@ -1,15 +1,20 @@
 import time
 
 from pybit.exceptions import FailedRequestError
+from requests.exceptions import RequestException
 
 from Execution.config_execution_api import kline_limit, session_public, timeframe
 from Execution.func_calcultions import extract_close_prices
 
 
 def get_ticker_snapshot(ticker):
-    response = session_public.get_tickers(category="linear", symbol=ticker)
-    ticker_list = response.get("result", {}).get("list", [])
-    return ticker_list[0] if ticker_list else {}
+    try:
+        response = session_public.get_tickers(category="linear", symbol=ticker)
+        ticker_list = response.get("result", {}).get("list", [])
+        return ticker_list[0] if ticker_list else {}
+    except (FailedRequestError, RequestException, TimeoutError) as exc:
+        print(f"[warn] ticker snapshot failed for {ticker}: {exc}")
+        return {}
 
 
 def get_latest_mark_price(ticker):
@@ -36,11 +41,16 @@ def get_price_klines(ticker):
                 return []
 
             return kline_list
-        except FailedRequestError:
+        except (FailedRequestError, RequestException, TimeoutError) as exc:
             if attempt < 2:
+                print(
+                    f"[warn] kline fetch failed for {ticker} "
+                    f"(attempt {attempt + 1}/3): {exc}"
+                )
                 time.sleep(5)
             else:
-                raise
+                print(f"[warn] giving up on kline fetch for {ticker}: {exc}")
+                return []
 
 
 def get_latest_klines(ticker_1, ticker_2):
